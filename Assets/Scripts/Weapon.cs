@@ -10,6 +10,12 @@ public class Weapon : MonoBehaviour
     public BoxCollider meleeArea;
     public TrailRenderer trailEffet;
 
+    private void Awake()
+    {
+        rate = 1;
+        type = Define.Type.Melee;
+    }
+
     public void Use()
     {
         if(type == Define.Type.Melee)
