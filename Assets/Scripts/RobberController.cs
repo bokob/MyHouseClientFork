@@ -11,11 +11,11 @@ public class RobberController : PlayerController
     /// <summary>
     /// 근접 공격과 관련된 변수
     /// </summary>
-    bool swingDown;   // 마우스 왼쪽 키 눌렸는지
+    bool swingKeyDown;  // 마우스 왼쪽 키 눌렸는지
     bool isSwingReady;  // 공격 준비
-    float swingkDelay; // 공격 딜레이
+    float swingDelay;   // 공격 딜레이
 
-    protected Weapon weapon;
+    public Weapon weapon;
 
     void Start()
     {
@@ -38,39 +38,37 @@ public class RobberController : PlayerController
         Attack();
     }
 
+
     /// <summary>
     /// 강도의 근접 공격 |
     /// 좌클릭: 휘두르기, 우클릭: 찌르기
     /// </summary>
     void Attack()
     {
-        if (Input.GetMouseButtonDown(0)) // Swing
+        swingKeyDown = Input.GetMouseButton(0);
+
+        if (weapon == null)
         {
-            swingkDelay += Time.deltaTime;
-            // isSwingReady = weapon.rate < swingkDelay; // 공격 딜레이로 공격 가능 여부 판단
+            Debug.Log("널이라 무기가 없음");
+            return;
+        }
 
-            isSwingReady = true;
+        swingDelay += Time.deltaTime;
 
-            //if (swingDown && isSwingReady) // 공격 가능한 상태
-            //{
-            //    weapon.Use();
-            //    anim.SetTrigger("setTrigger");
-            //    swingkDelay = 0;
-            //}
+        isSwingReady = weapon.rate < swingDelay; // 공격속도가 공격 딜레이보다 작으면 공격준비 완료
 
-            //if (isSwingReady) // 공격 가능한 상태
-            //{
-            //    //weapon.Use();
-            //    anim.SetTrigger("setTrigger");
-            //    swingkDelay = 0;
-            //}
+        if(swingKeyDown && isSwingReady && base._isGround)
+        {
+            Debug.Log("시작");
+            weapon.Use();
             anim.SetTrigger("setSwing");
-            swingkDelay = 0;
+            swingDelay = 0;
+            swingKeyDown = false;
         }
-        else if (Input.GetMouseButtonDown(1)) // Stab
-        {
-            Debug.Log("Stap!");
-            anim.SetTrigger("setStab");
-        }
+        //else if (Input.GetMouseButtonDown(1)) // Stab
+        //{
+        //    Debug.Log("Stap!");
+        //    anim.SetTrigger("setStab");
+        //}
     }
 }
