@@ -10,14 +10,14 @@ public class PlayerController : MonoBehaviour
     protected float _walkSpeed = 5f;
     protected float _runSpeed = 15f;
     protected float _moveSpeed;
-    protected float _jumpHeight = 3f; // Á¡ÇÁ ÆÄ¿ö
-    bool runDown; // ´Þ¸®´Â »óÅÂ ÆÇº°
+    protected float _jumpHeight = 3f; // ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¿ï¿½
+    bool runDown; // ï¿½Þ¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Çºï¿½
 
 
-    // °ø°Ý °ü·Ã
-    bool swingDown;   // ¸¶¿ì½º ¿ÞÂÊ Å° ´­·È´ÂÁö
-    bool isSwingReady;  // °ø°Ý ÁØºñ
-    float swingkDelay; // °ø°Ý µô·¹ÀÌ
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    bool swingDown;   // ï¿½ï¿½ï¿½ì½º ï¿½ï¿½ï¿½ï¿½ Å° ï¿½ï¿½ï¿½È´ï¿½ï¿½ï¿½
+    bool isSwingReady;  // ï¿½ï¿½ï¿½ï¿½ ï¿½Øºï¿½
+    float swingkDelay; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
     Animator anim;
     Rigidbody rb;
@@ -47,7 +47,7 @@ public class PlayerController : MonoBehaviour
         Attack();
     }
 
-    protected virtual void Walk() // ÀÌµ¿
+    protected virtual void Walk() // ï¿½Ìµï¿½
     {
         _moveSpeed = _walkSpeed;
         if(dir!=Vector3.zero)
@@ -55,16 +55,16 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 0.2f);
             transform.position += dir * _moveSpeed * Time.deltaTime;
         }
-        anim.SetBool("isWalk", dir != Vector3.zero); // ÀÌµ¿ÀÌ ÀÖÀ¸¸é °È°Ô
+        anim.SetBool("isWalk", dir != Vector3.zero); // ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½È°ï¿½
     }
-    protected virtual void Run() // ´Þ¸®´Â ¼Óµµ·Î ¸¸µé±â
+    protected virtual void Run() // ï¿½Þ¸ï¿½ï¿½ï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
     {
         runDown = Input.GetKey(KeyCode.LeftShift);
         if (runDown)
             _moveSpeed = _runSpeed;
         anim.SetBool("isRun", runDown && dir!=Vector3.zero);
     }
-    protected void IsGround() // ¶¥ÀÎÁö È®ÀÎ
+    protected void IsGround() // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
     {
         Debug.DrawRay(transform.position + (Vector3.up * 0.2f), Vector3.down, Color.red);
 
@@ -76,30 +76,30 @@ public class PlayerController : MonoBehaviour
             _isGround = false;
     }
 
-    protected void Jump() // Á¡ÇÁ
+    protected void Jump() // ï¿½ï¿½ï¿½ï¿½
     {
         IsGround();
         if (Input.GetKeyDown(KeyCode.Space) && _isGround)
         {
             Vector3 jumpPower = Vector3.up * _jumpHeight;
-            rb.AddForce(jumpPower, ForceMode.VelocityChange); // ForceMode.VelocityChange´Â Áú·ª ¹«½ÃÇÏ°í Á÷Á¢ÀûÀ¸·Î ¼ÓµµÀÇ º¯È­¸¦ ÁØ´Ù.
+            rb.AddForce(jumpPower, ForceMode.VelocityChange); // ForceMode.VelocityChangeï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½Ø´ï¿½.
             anim.SetTrigger("setJump");
         }
     }
     protected void Dead()
     {
-        Debug.Log("Á×¾ú´ß...");
+        Debug.Log("ï¿½×¾ï¿½ï¿½ï¿½...");
     }
 
-    // Robber Àü¿ë ÇÔ¼ö
+    // Robber ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
     void Attack()
     {
         if (Input.GetMouseButtonDown(0)) // Swing
         {
             swingkDelay += Time.deltaTime;
-            isSwingReady = weapon.rate < swingkDelay; // °ø°Ý µô·¹ÀÌ·Î °ø°Ý °¡´É ¿©ºÎ ÆÇ´Ü
+            isSwingReady = weapon.rate < swingkDelay; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½
 
-            if (swingDown && isSwingReady) // °ø°Ý °¡´ÉÇÑ »óÅÂ
+            if (swingDown && isSwingReady) // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             {
                 weapon.Use();
                 anim.SetTrigger("setTrigger");
