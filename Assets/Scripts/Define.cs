@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class Define
 {
+    public enum Role
+    {
+        Houseowner,
+        Robber
+    }
     public enum Type
     {
         Melee,
