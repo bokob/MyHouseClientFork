@@ -10,14 +10,13 @@ public class PlayerController : MonoBehaviour
     protected float _walkSpeed = 5f;
     protected float _runSpeed = 15f;
     protected float _moveSpeed;
-    protected float _jumpHeight = 3f; // ���� �Ŀ�
-    bool runDown; // �޸��� ���� �Ǻ�
+    protected float _jumpHeight = 3f;
+    bool runDown;
 
 
-    // ���� ����
-    bool swingDown;   // ���콺 ���� Ű ���ȴ���
-    bool isSwingReady;  // ���� �غ�
-    float swingkDelay; // ���� ������
+    bool swingDown;
+    bool isSwingReady;
+    float swingkDelay;
 
     Animator anim;
     Rigidbody rb;
@@ -47,7 +46,7 @@ public class PlayerController : MonoBehaviour
         Attack();
     }
 
-    protected virtual void Walk() // �̵�
+    protected virtual void Walk()
     {
         _moveSpeed = _walkSpeed;
         if(dir!=Vector3.zero)
@@ -55,16 +54,16 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 0.2f);
             transform.position += dir * _moveSpeed * Time.deltaTime;
         }
-        anim.SetBool("isWalk", dir != Vector3.zero); // �̵��� ������ �Ȱ�
+        anim.SetBool("isWalk", dir != Vector3.zero);
     }
-    protected virtual void Run() // �޸��� �ӵ��� �����
+    protected virtual void Run()
     {
         runDown = Input.GetKey(KeyCode.LeftShift);
         if (runDown)
             _moveSpeed = _runSpeed;
         anim.SetBool("isRun", runDown && dir!=Vector3.zero);
     }
-    protected void IsGround() // ������ Ȯ��
+    protected void IsGround()
     {
         Debug.DrawRay(transform.position + (Vector3.up * 0.2f), Vector3.down, Color.red);
 
@@ -76,30 +75,30 @@ public class PlayerController : MonoBehaviour
             _isGround = false;
     }
 
-    protected void Jump() // ����
+    protected void Jump()
     {
         IsGround();
         if (Input.GetKeyDown(KeyCode.Space) && _isGround)
         {
             Vector3 jumpPower = Vector3.up * _jumpHeight;
-            rb.AddForce(jumpPower, ForceMode.VelocityChange); // ForceMode.VelocityChange�� ���� �����ϰ� ���������� �ӵ��� ��ȭ�� �ش�.
+            rb.AddForce(jumpPower, ForceMode.VelocityChange);
             anim.SetTrigger("setJump");
         }
     }
     protected void Dead()
     {
-        Debug.Log("�׾���...");
+        Debug.Log("GameOver...");
     }
 
-    // Robber ���� �Լ�
+    // Robber
     void Attack()
     {
         if (Input.GetMouseButtonDown(0)) // Swing
         {
             swingkDelay += Time.deltaTime;
-            isSwingReady = weapon.rate < swingkDelay; // ���� �����̷� ���� ���� ���� �Ǵ�
+            isSwingReady = weapon.rate < swingkDelay;
 
-            if (swingDown && isSwingReady) // ���� ������ ����
+            if (swingDown && isSwingReady)
             {
                 weapon.Use();
                 anim.SetTrigger("setTrigger");
