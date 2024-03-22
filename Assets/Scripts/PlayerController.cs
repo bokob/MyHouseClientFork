@@ -1,51 +1,32 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 플레이어(집주인, 강도)가 공통적으로 상속받는 클래스
+/// </summary>
 public class PlayerController : MonoBehaviour
 {
+    protected Rigidbody rb;
+    protected Animator anim;
 
+    protected Vector3 dir = Vector3.zero;
     protected bool _isGround;  
     protected float _walkSpeed = 5f;
     protected float _runSpeed = 15f;
     protected float _moveSpeed;
-    protected float _jumpHeight = 3f;
-    bool runDown;
-
-
-    bool swingDown;
-    bool isSwingReady;
-    float swingkDelay;
-
-    Animator anim;
-    Rigidbody rb;
-    Vector3 dir = Vector3.zero;
-
-    Weapon weapon;
-
-    protected virtual void Start()
+    protected float _jumpHeight = 3f; // 점프 파워
+    bool isPressedRunKey; // 달리는 상태 판별
+    
+    protected void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        anim = GetComponent<Animator>();
+        anim = GetComponentInChildren<Animator>();
     }
 
-    private void Update()
-    {
-        dir.x = Input.GetAxis("Horizontal");
-        dir.z = Input.GetAxis("Vertical");
-        dir = dir.normalized;
-
-        Jump();
-    }
-
-    private void FixedUpdate()
-    {
-        Walk();
-        Run();
-        Attack();
-    }
-
+    /// <summary>
+    /// 기본 이동, 걷는 애니메이션 재생
+    /// </summary>
     protected virtual void Walk()
     {
         _moveSpeed = _walkSpeed;
@@ -56,13 +37,21 @@ public class PlayerController : MonoBehaviour
         }
         anim.SetBool("isWalk", dir != Vector3.zero);
     }
-    protected virtual void Run()
+
+    /// <summary>
+    /// 달리기, 이동 속도를 변화시키고 달리는 애니메이션 재생
+    /// </summary>
+    protected virtual void Run() // 달리는 속도로 만들기
     {
-        runDown = Input.GetKey(KeyCode.LeftShift);
-        if (runDown)
+        isPressedRunKey = Input.GetKey(KeyCode.LeftShift);
+        if (isPressedRunKey)
             _moveSpeed = _runSpeed;
-        anim.SetBool("isRun", runDown && dir!=Vector3.zero);
+        anim.SetBool("isRun", isPressedRunKey && dir!=Vector3.zero);
     }
+
+    /// <summary>
+    /// Ground인지 판단
+    /// </summary>
     protected void IsGround()
     {
         Debug.DrawRay(transform.position + (Vector3.up * 0.2f), Vector3.down, Color.red);
@@ -75,6 +64,9 @@ public class PlayerController : MonoBehaviour
             _isGround = false;
     }
 
+    /// <summary>
+    /// 점프
+    /// </summary>
     protected void Jump()
     {
         IsGround();
@@ -85,30 +77,12 @@ public class PlayerController : MonoBehaviour
             anim.SetTrigger("setJump");
         }
     }
+
+    /// <summary>
+    /// hp가 0이되면 사망
+    /// </summary>
     protected void Dead()
     {
         Debug.Log("GameOver...");
-    }
-
-    // Robber
-    void Attack()
-    {
-        if (Input.GetMouseButtonDown(0)) // Swing
-        {
-            swingkDelay += Time.deltaTime;
-            isSwingReady = weapon.rate < swingkDelay;
-
-            if (swingDown && isSwingReady)
-            {
-                weapon.Use();
-                anim.SetTrigger("setTrigger");
-                swingkDelay = 0;
-            }
-        }
-        else if (Input.GetMouseButtonDown(1)) // Stab
-        {
-            Debug.Log("Stap!");
-            anim.SetTrigger("setStab");
-        }
     }
 }
