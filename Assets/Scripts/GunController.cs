@@ -8,6 +8,7 @@ public class GunController : MonoBehaviour
     private Gun _currentGun;
 
     private float _currentFireRate;
+    private bool _isReload = false;
 
     private AudioSource _audioSource;
 
@@ -31,23 +32,53 @@ public class GunController : MonoBehaviour
 
     private void TryFire()
     {
-        if (Input.GetButton("Fire1") && _currentFireRate <= 0)
+        if (Input.GetButton("Fire1") && _currentFireRate <= 0) // + && !_isReload
         {
             Fire();
         }
     }
 
-    private void Fire()
+    private void Fire() // Before shoot
     {
-        _currentFireRate = _currentGun.fireRate;
-        Shoot();
+        if(_currentGun.currentBulletCount > 0)
+        {
+            Shoot();
+        }
+        else
+        {
+            Reload();
+        }
     }
 
-    private void Shoot()
+    private void Shoot() // After shoot
     {
+        _currentGun.currentBulletCount--;
+        _currentFireRate = _currentGun.fireRate;
         _currentGun.muzzleFlash.Play();
         PlayAudioSource(_currentGun.fireSound);
         Debug.Log("Shoot");
+    }
+
+    private void Reload()
+    {
+        if(_currentGun.carryBulletCount > 0)
+        {
+            // _currentGun.anim.SetTrigger("Reload");
+
+        // yield return new WaitForSeconds(_currentGun.reloadTime);
+
+        if(_currentGun.carryBulletCount >= _currentGun.reloadBulletCount)
+        {
+            _currentGun.currentBulletCount = _currentGun.reloadBulletCount;
+            _currentGun.carryBulletCount -= _currentGun.reloadBulletCount;
+        }
+        else
+        {
+            _currentGun.currentBulletCount = _currentGun.carryBulletCount;
+            _currentGun.carryBulletCount = 0;
+        }
+
+        }
     }
 
     private void PlayAudioSource(AudioClip _clip)
