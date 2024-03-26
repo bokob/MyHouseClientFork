@@ -7,21 +7,31 @@ using UnityEngine;
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
+    protected string _nickname;  // 닉네임
+    protected Define.Role _role; // 플레이어 역할
+
+    protected Status _status;
+
     protected Rigidbody rb;
     protected Animator anim;
 
     protected Vector3 dir = Vector3.zero;
-    protected bool _isGround;  
+    protected bool _isGround;
     protected float _walkSpeed = 5f;
     protected float _runSpeed = 15f;
     protected float _moveSpeed;
-    protected float _jumpHeight = 3f; // 점프 파워
-    bool isPressedRunKey; // 달리는 상태 판별
+    protected float _jumpHeight = 4f;         // 점프 파워
+    bool isPressedRunKey;                     // 달리는 상태 판별
+
+    protected bool _isDead;                    // 죽었는지 판별
     
     protected void Awake()
     {
         rb = GetComponent<Rigidbody>();
         anim = GetComponentInChildren<Animator>();
+
+        gameObject.AddComponent<Status>();
+        _status = gameObject.GetComponent<Status>();
     }
 
     /// <summary>
@@ -83,6 +93,10 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     protected void Dead()
     {
-        Debug.Log("죽었닭...");
+        if(_status.Hp <= 0 || Input.GetKeyDown(KeyCode.P))
+        {
+            anim.SetTrigger("setDie");
+            _isDead = true;
+        }
     }
 }

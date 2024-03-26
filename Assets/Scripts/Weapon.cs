@@ -3,49 +3,31 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 현재 근접무기 로직만 담아버림 추후에 상속받을 수 있게 코드 수정해야 함
+/// 근거리, 원거리 무기들이 상속받는 일반화된 무기 클래스
 /// </summary>
 public class Weapon : MonoBehaviour
 {
-    public Define.Type type;            // 무기 타입
-    public int damage;                  // 공격력
-    public float rate;                  // 공격 속도
-    public BoxCollider meleeArea;       // 근접 공격 범위
-    public TrailRenderer trailEffet;    // 휘두를 때 효과
+    public Define.Type Type { get; protected set; } // 무기 타입
 
-    private void Awake()
+    public int Damage { get; protected set; }       // 공격력
+    public float Rate { get; protected set; }       // 공격속도
+
+
+    void Awake()
     {
-        rate = 1;
-        type = Define.Type.Melee;
+        // TODO
+        /*
+         무기가 다양해질 때 무기 이름이나 타입에 따라
+         데미지나 공격속도를 세팅하는 작업을 해줘야 함
+         */
     }
 
     /// <summary>
-    /// Use() 실행하면서 Swing() 코루틴이라 같이 실행된다.
+    /// Use() 실행하면서 각 무기에 맞는 공격 효과 코루틴이 같이 실행된다.
     /// </summary>
-    public void Use()
+    public virtual void Use()
     {
-        if(type == Define.Type.Melee)
-        {
-            StopCoroutine("Swing");
-            StartCoroutine("Swing");
-        }
-
-        if(type == Define.Type.Range)
-        {
-
-        }
-    }
-
-    IEnumerator Swing()
-    {
-        yield return new WaitForSeconds(0.1f);
-        meleeArea.enabled = true;   
-        trailEffet.enabled = true;
-
-        yield return new WaitForSeconds(0.3f);
-        meleeArea.enabled = false;
-
-        yield return new WaitForSeconds(0.3f);
-        trailEffet.enabled = false;
+        // TODO
+        // 무기에 맞는 공격 기능
     }
 }
