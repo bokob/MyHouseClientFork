@@ -3,29 +3,39 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// ÇÃ·¹ÀÌ¾î(ÁıÁÖÀÎ, °­µµ)°¡ °øÅëÀûÀ¸·Î »ó¼Ó¹Ş´Â Å¬·¡½º
+/// í”Œë ˆì´ì–´(ì§‘ì£¼ì¸, ê°•ë„)ê°€ ê³µí†µì ìœ¼ë¡œ ìƒì†ë°›ëŠ” í´ë˜ìŠ¤
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
+    protected string _nickname;  // ë‹‰ë„¤ì„
+    protected Define.Role _role; // í”Œë ˆì´ì–´ ì—­í• 
+
+    protected Status _status;
+
     protected Rigidbody rb;
     protected Animator anim;
 
     protected Vector3 dir = Vector3.zero;
-    protected bool _isGround;  
+    protected bool _isGround;
     protected float _walkSpeed = 5f;
     protected float _runSpeed = 15f;
     protected float _moveSpeed;
-    protected float _jumpHeight = 3f; // Á¡ÇÁ ÆÄ¿ö
-    bool isPressedRunKey; // ´Ş¸®´Â »óÅÂ ÆÇº°
+    protected float _jumpHeight = 4f;         // ì í”„ íŒŒì›Œ
+    bool isPressedRunKey;                     // ë‹¬ë¦¬ëŠ” ìƒíƒœ íŒë³„
+
+    protected bool _isDead;                    // ì£½ì—ˆëŠ”ì§€ íŒë³„
     
     protected void Awake()
     {
         rb = GetComponent<Rigidbody>();
         anim = GetComponentInChildren<Animator>();
+
+        gameObject.AddComponent<Status>();
+        _status = gameObject.GetComponent<Status>();
     }
 
     /// <summary>
-    /// ±âº» ÀÌµ¿, °È´Â ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+    /// ê¸°ë³¸ ì´ë™, ê±·ëŠ” ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
     /// </summary>
     protected virtual void Walk()
     {
@@ -39,9 +49,9 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// ´Ş¸®±â, ÀÌµ¿ ¼Óµµ¸¦ º¯È­½ÃÅ°°í ´Ş¸®´Â ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+    /// ë‹¬ë¦¬ê¸°, ì´ë™ ì†ë„ë¥¼ ë³€í™”ì‹œí‚¤ê³  ë‹¬ë¦¬ëŠ” ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
     /// </summary>
-    protected virtual void Run() // ´Ş¸®´Â ¼Óµµ·Î ¸¸µé±â
+    protected virtual void Run() // ë‹¬ë¦¬ëŠ” ì†ë„ë¡œ ë§Œë“¤ê¸°
     {
         isPressedRunKey = Input.GetKey(KeyCode.LeftShift);
         if (isPressedRunKey)
@@ -50,7 +60,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// GroundÀÎÁö ÆÇ´Ü
+    /// Groundì¸ì§€ íŒë‹¨
     /// </summary>
     protected void IsGround()
     {
@@ -65,7 +75,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Á¡ÇÁ
+    /// ì í”„
     /// </summary>
     protected void Jump()
     {
@@ -79,10 +89,14 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// hp°¡ 0ÀÌµÇ¸é »ç¸Á
+    /// hpê°€ 0ì´ë˜ë©´ ì‚¬ë§
     /// </summary>
     protected void Dead()
     {
-        Debug.Log("GameOver...");
+        if(_status.Hp <= 0 || Input.GetKeyDown(KeyCode.P))
+        {
+            anim.SetTrigger("setDie");
+            _isDead = true;
+        }
     }
 }
