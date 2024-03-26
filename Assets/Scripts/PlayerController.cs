@@ -3,12 +3,12 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// ÇÃ·¹ÀÌ¾î(ÁıÁÖÀÎ, °­µµ)°¡ °øÅëÀûÀ¸·Î »ó¼Ó¹Ş´Â Å¬·¡½º
+/// í”Œë ˆì´ì–´(ì§‘ì£¼ì¸, ê°•ë„)ê°€ ê³µí†µì ìœ¼ë¡œ ìƒì†ë°›ëŠ” í´ë˜ìŠ¤
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
-    protected string _nickname;  // ´Ğ³×ÀÓ
-    protected Define.Role _role; // ÇÃ·¹ÀÌ¾î ¿ªÇÒ
+    protected string _nickname;  // ë‹‰ë„¤ì„
+    protected Define.Role _role; // í”Œë ˆì´ì–´ ì—­í• 
 
     protected Status _status;
 
@@ -20,10 +20,10 @@ public class PlayerController : MonoBehaviour
     protected float _walkSpeed = 5f;
     protected float _runSpeed = 15f;
     protected float _moveSpeed;
-    protected float _jumpHeight = 4f;         // Á¡ÇÁ ÆÄ¿ö
-    bool isPressedRunKey;                     // ´Ş¸®´Â »óÅÂ ÆÇº°
+    protected float _jumpHeight = 4f;         // ì í”„ íŒŒì›Œ
+    bool isPressedRunKey;                     // ë‹¬ë¦¬ëŠ” ìƒíƒœ íŒë³„
 
-    protected bool _isDead;                    // Á×¾ú´ÂÁö ÆÇº°
+    protected bool _isDead;                    // ì£½ì—ˆëŠ”ì§€ íŒë³„
     
     protected void Awake()
     {
@@ -35,7 +35,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// ±âº» ÀÌµ¿, °È´Â ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+    /// ê¸°ë³¸ ì´ë™, ê±·ëŠ” ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
     /// </summary>
     protected virtual void Walk()
     {
@@ -45,13 +45,13 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 0.2f);
             transform.position += dir * _moveSpeed * Time.deltaTime;
         }
-        anim.SetBool("isWalk", dir != Vector3.zero); // ÀÌµ¿ÀÌ ÀÖÀ¸¸é °È°Ô
+        anim.SetBool("isWalk", dir != Vector3.zero);
     }
 
     /// <summary>
-    /// ´Ş¸®±â, ÀÌµ¿ ¼Óµµ¸¦ º¯È­½ÃÅ°°í ´Ş¸®´Â ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+    /// ë‹¬ë¦¬ê¸°, ì´ë™ ì†ë„ë¥¼ ë³€í™”ì‹œí‚¤ê³  ë‹¬ë¦¬ëŠ” ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
     /// </summary>
-    protected virtual void Run() // ´Ş¸®´Â ¼Óµµ·Î ¸¸µé±â
+    protected virtual void Run() // ë‹¬ë¦¬ëŠ” ì†ë„ë¡œ ë§Œë“¤ê¸°
     {
         isPressedRunKey = Input.GetKey(KeyCode.LeftShift);
         if (isPressedRunKey)
@@ -60,7 +60,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// GroundÀÎÁö ÆÇ´Ü
+    /// Groundì¸ì§€ íŒë‹¨
     /// </summary>
     protected void IsGround()
     {
@@ -75,7 +75,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Á¡ÇÁ
+    /// ì í”„
     /// </summary>
     protected void Jump()
     {
@@ -83,13 +83,13 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && _isGround)
         {
             Vector3 jumpPower = Vector3.up * _jumpHeight;
-            rb.AddForce(jumpPower, ForceMode.VelocityChange); // ForceMode.VelocityChange´Â Áú·ª ¹«½ÃÇÏ°í Á÷Á¢ÀûÀ¸·Î ¼ÓµµÀÇ º¯È­¸¦ ÁØ´Ù.
+            rb.AddForce(jumpPower, ForceMode.VelocityChange);
             anim.SetTrigger("setJump");
         }
     }
 
     /// <summary>
-    /// hp°¡ 0ÀÌµÇ¸é »ç¸Á
+    /// hpê°€ 0ì´ë˜ë©´ ì‚¬ë§
     /// </summary>
     protected void Dead()
     {
