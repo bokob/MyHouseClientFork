@@ -17,7 +17,7 @@ public class RobberController : PlayerController
     bool isStabReady;  // 공격 준비
     float stabDelay;   // 공격 딜레이
 
-    public Melee meleeWeapon;
+    public Melee meleeWeapon; // 근접 무기
 
     void Start()
     {
