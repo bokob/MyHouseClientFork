@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Person : MonoBehaviour
 {
-    // Start is called before the first frame update
     Status _status;
     Animator _anim;
     void Start()
@@ -14,7 +13,6 @@ public class Person : MonoBehaviour
         _anim = GetComponentInChildren<Animator>();
     }
 
-    // Update is called once per frame
     void Update()
     {
 
@@ -23,9 +21,18 @@ public class Person : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         Debug.Log("닿았다");
-        if (other.tag == "Melee")
+
+        /*
+         * 근접 무기에만 적용됨
+         * 나중에 원거리 무기에 피격 당했을 때의 일도 처리해 줘야 함
+         * Tag를 이용하기 보다는 Weapon.cs에 담긴 Type으로 구분할 예정 
+         */
+        if(other.tag == "Melee")
         {
-            _anim.SetBool("isDead", true); 
+            _status.TakedDamage(other.GetComponent<Weapon>().Attack);
+            
+            if(_status.Hp <= 0)
+                _anim.SetBool("isDead", true);
         }
     }
 }

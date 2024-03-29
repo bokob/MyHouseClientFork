@@ -15,6 +15,16 @@ public class Melee : Weapon
         base.Type = Define.Type.Melee;
         meleeArea = gameObject.GetComponent<BoxCollider>();
         trailEffet = gameObject.GetComponentInChildren<TrailRenderer>();
+
+        // TODO
+        /*
+         * 무기 능력치를 엑셀이나 json을 이용해 관리 예정
+         * 따로 읽어와서 그 값들을 세팅해줘야 함
+         * 현재 임시로 테스트를 위해 하드코딩 함
+        */
+        if (gameObject.tag == "Melee")
+            base.Attack = 50;
+
     }
 
     /// <summary>

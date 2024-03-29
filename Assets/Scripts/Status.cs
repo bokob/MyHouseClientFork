@@ -13,15 +13,12 @@ public class Status : MonoBehaviour
     /// <summary>
     /// 데미지 처리 함수
     /// </summary>
-    public void TakedDamage(int damage)
+    public void TakedDamage(int attack)
     {
-        // TODO
-        /*
-        피해 = 방어력 - 데미지
-        1. 피해가 음수라면 회복되는 현상이 일어나므로 피해의 값을 0이상으로 되게끔 설정해야 한다.
-        2. 체력에서 피해를 뺀다.
-        3. 체력인 0이하가 되면 PlayerConroller에 있는 isDead를 true로 바꾼다.
-         * 
-        */
+        // 피해가 음수라면 회복되는 현상이 일어나므로 피해의 값을 0이상으로 되게끔 설정
+        float damage = Mathf.Max(0, attack - Defence);
+        Hp -= damage;
+
+        Debug.Log(gameObject.name + "(이)가 " + damage + " 만큼 피해를 입었음!");
     }
 }
