@@ -5,13 +5,17 @@ using UnityEngine;
 
 public class HomeownerController : PlayerController
 {
-    float swingkDealy;
+    bool swingKeyDown;
+    bool stabKeyDown;
+    bool isStabReady;
+    float swingDelay;
+    float stabDelay;
     bool isSwingReady;
     bool holdingGun;
-    bool holdingKnife;
     bool isPressedAiming;
 
     protected Weapon weapon;
+    public Melee meleeWeapon;
     void Start()
     {
 
@@ -22,16 +26,17 @@ public class HomeownerController : PlayerController
         dir.z = Input.GetAxis("Vertical");
         dir = dir.normalized;
         Jump();
+        Dead();
     }
     void FixedUpdate()
     {
+        if(base._isDead) return;
+        
         Walk();
         Run();
         HoldGun();
         AimingGun();
-        HoldKnife();
-        KnifeAttack();
-        Dying();
+        Attack();
     }
 
     void HoldGun()
@@ -39,7 +44,6 @@ public class HomeownerController : PlayerController
         if(Input.GetKeyDown("t") && !holdingGun)
         {
             holdingGun = true;
-            holdingKnife = false;
             anim.SetBool("holdGun", holdingGun);
         }
         else if(Input.GetKeyDown("t") && holdingGun)
@@ -55,40 +59,33 @@ public class HomeownerController : PlayerController
         anim.SetBool("aimGun", isPressedAiming && holdingGun);
     }
 
-    void HoldKnife()
+    void Attack()
     {
-        if(Input.GetKeyDown("y") && !holdingKnife)
+        swingKeyDown = Input.GetMouseButtonDown(0);
+        stabKeyDown = Input.GetMouseButtonDown(1);
+
+        
+
+        swingDelay += Time.deltaTime;
+        stabDelay += Time.deltaTime;
+        isSwingReady = meleeWeapon.Rate < swingDelay; // 공격속도가 공격 딜레이보다 작으면 공격준비 완료
+        isStabReady = meleeWeapon.Rate < stabDelay;
+
+        if(swingKeyDown && isSwingReady && base._isGround) // 휘두르기
         {
-            holdingKnife = true;
-            holdingGun = false;
-            anim.SetBool("holdKnife", holdingKnife);
-        }
-        else if(Input.GetKeyDown("y") && holdingKnife)
-        {
-            holdingKnife = false;
-            anim.SetBool("holdKnife", holdingKnife);
-        }
-    }
-    
-    void KnifeAttack()
-    {
-        if(Input.GetMouseButtonDown(0) && holdingKnife)
-        {
-            swingkDealy += Time.deltaTime;
-            isSwingReady = true;
+            Debug.Log("시작");
+            meleeWeapon.Use();
             anim.SetTrigger("setSwing");
-            swingkDealy = 0;
+            swingDelay = 0;
+            swingKeyDown = false;
         }
-        else if(Input.GetMouseButtonDown(1) && holdingKnife)
+        else if (stabKeyDown && isStabReady && base._isGround) // 찌르기
         {
+            Debug.Log("시작");
+            meleeWeapon.Use();
             anim.SetTrigger("setStab");
-        }
-    }
-    void Dying()
-    {
-        if(Input.GetKeyDown("u"))
-        {
-            anim.SetTrigger("Dead");
+            stabDelay = 0;
+            stabKeyDown = false;
         }
     }
 }
