@@ -14,11 +14,17 @@ public class HomeownerController : PlayerController
     bool holdingGun;
     bool isPressedAiming;
 
+    public GameObject handMag;
+    public GameObject gunMag;
+
     protected Weapon weapon;
     public Melee meleeWeapon;
+
     void Start()
     {
-
+        handMag.SetActive(false);
+        holdingGun = true;
+        anim.SetBool("holdGun", holdingGun);
     }
     void Update()
     {
@@ -37,6 +43,7 @@ public class HomeownerController : PlayerController
         HoldGun();
         AimingGun();
         Attack();
+        Reload();
     }
 
     void HoldGun()
@@ -59,8 +66,20 @@ public class HomeownerController : PlayerController
         anim.SetBool("aimGun", isPressedAiming && holdingGun);
     }
 
+    void Reload()
+    {
+        if(Input.GetKeyDown("r") && holdingGun)
+        {
+            anim.SetTrigger("reload");
+            gunMag.SetActive(false);
+            handMag.SetActive(true);
+        }
+    }
+
     void Attack()
     {
+        if(holdingGun == true) return;
+
         swingKeyDown = Input.GetMouseButtonDown(0);
         stabKeyDown = Input.GetMouseButtonDown(1);
 
@@ -87,5 +106,11 @@ public class HomeownerController : PlayerController
             stabDelay = 0;
             stabKeyDown = false;
         }
+    }
+
+    void AfterReload()
+    {
+        gunMag.SetActive(true);
+        handMag.SetActive(false);
     }
 }
