@@ -14,6 +14,7 @@ public class TPSCameraController : MonoBehaviour
     void Update()
     {
         LookAround();
+        CameraMove();
     }
 
     private void LookAround()
@@ -32,6 +33,13 @@ public class TPSCameraController : MonoBehaviour
         }
 
         _cameraArm.rotation = Quaternion.Euler(x, camAngle.y + mouseDelta.x, camAngle.z);
+    }
+
+    private void CameraMove()
+    {
+        float cameraPosZ = -0.5f + _target.position.z; // -0.5f is the initial value of _camerArm's position.z.
+        Vector3 cameraPos = new Vector3(_target.position.x, _cameraArm.position.y, cameraPosZ);
+        _cameraArm.position = cameraPos;
     }
 
 }
