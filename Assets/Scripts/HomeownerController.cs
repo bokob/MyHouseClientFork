@@ -18,6 +18,7 @@ public class HomeownerController : PlayerController
     public GameObject gunMag;
 
     protected Weapon weapon;
+    protected WeaponManager w_Manager;
     public Melee meleeWeapon;
 
     void Start()
@@ -47,13 +48,13 @@ public class HomeownerController : PlayerController
     }
 
     void HoldGun()
-    {
-        if(Input.GetKeyDown("t") && !holdingGun)
+    {   
+        if(gunMag.activeInHierarchy)
         {
             holdingGun = true;
             anim.SetBool("holdGun", holdingGun);
         }
-        else if(Input.GetKeyDown("t") && holdingGun)
+        else if(!gunMag.activeInHierarchy)
         {
             holdingGun = false;
             anim.SetBool("holdGun", holdingGun);
@@ -113,4 +114,6 @@ public class HomeownerController : PlayerController
         gunMag.SetActive(true);
         handMag.SetActive(false);
     }
+
+    
 }

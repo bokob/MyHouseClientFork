@@ -6,7 +6,7 @@ public class WeaponManager : MonoBehaviour
 {
     public float switchDelay = 1f;
     public GameObject[] weapon;
-
+    
     private int index = 0;
     private bool isSwitching = false;
 
