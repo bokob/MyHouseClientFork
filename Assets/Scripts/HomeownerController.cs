@@ -61,7 +61,7 @@ public class HomeownerController : PlayerController
         }
     }
 
-    void AimingGun()
+    protected void AimingGun()
     {
         isPressedAiming = Input.GetMouseButton(1);
         anim.SetBool("aimGun", isPressedAiming && holdingGun);

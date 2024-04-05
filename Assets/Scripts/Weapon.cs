@@ -3,31 +3,31 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// ±Ù°Å¸®, ¿ø°Å¸® ¹«±âµéÀÌ »ó¼Ó¹Ş´Â ÀÏ¹İÈ­µÈ ¹«±â Å¬·¡½º
+/// ê·¼ê±°ë¦¬, ì›ê±°ë¦¬ ë¬´ê¸°ë“¤ì´ ìƒì†ë°›ëŠ” ì¼ë°˜í™”ëœ ë¬´ê¸° í´ë˜ìŠ¤
 /// </summary>
 public class Weapon : MonoBehaviour
 {
-    public Define.Type Type { get; protected set; } // ¹«±â Å¸ÀÔ
+    public Define.Type Type { get; protected set; } // ë¬´ê¸° íƒ€ì…
 
-    public int Attack { get; protected set; }       // °ø°İ·Â
-    public float Rate { get; protected set; }       // °ø°İ¼Óµµ
+    public int Attack { get; protected set; }       // ê³µê²©ë ¥
+    public float Rate { get; protected set; }       // ê³µê²©ì†ë„
 
 
     void Awake()
     {
         // TODO
         /*
-         ¹«±â°¡ ´Ù¾çÇØÁú ¶§ ¹«±â ÀÌ¸§ÀÌ³ª Å¸ÀÔ¿¡ µû¶ó
-         µ¥¹ÌÁö³ª °ø°İ¼Óµµ¸¦ ¼¼ÆÃÇÏ´Â ÀÛ¾÷À» ÇØÁà¾ß ÇÔ
+         ë¬´ê¸°ê°€ ë‹¤ì–‘í•´ì§ˆ ë•Œ ë¬´ê¸° ì´ë¦„ì´ë‚˜ íƒ€ì…ì— ë”°ë¼
+         ë°ë¯¸ì§€ë‚˜ ê³µê²©ì†ë„ë¥¼ ì„¸íŒ…í•˜ëŠ” ì‘ì—…ì„ í•´ì¤˜ì•¼ í•¨
          */
     }
 
     /// <summary>
-    /// Use() ½ÇÇàÇÏ¸é¼­ °¢ ¹«±â¿¡ ¸Â´Â °ø°İ È¿°ú ÄÚ·çÆ¾ÀÌ °°ÀÌ ½ÇÇàµÈ´Ù.
+    /// Use() ì‹¤í–‰í•˜ë©´ì„œ ê° ë¬´ê¸°ì— ë§ëŠ” ê³µê²© íš¨ê³¼ ì½”ë£¨í‹´ì´ ê°™ì´ ì‹¤í–‰ëœë‹¤.
     /// </summary>
     public virtual void Use()
     {
         // TODO
-        // ¹«±â¿¡ ¸Â´Â °ø°İ ±â´É
+        // ë¬´ê¸°ì— ë§ëŠ” ê³µê²© ê¸°ëŠ¥
     }
 }
