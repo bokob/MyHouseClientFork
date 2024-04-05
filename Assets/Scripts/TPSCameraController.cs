@@ -41,5 +41,4 @@ public class TPSCameraController : MonoBehaviour
         Vector3 cameraPos = new Vector3(_target.position.x, _cameraArm.position.y, cameraPosZ);
         _cameraArm.position = cameraPos;
     }
-
 }
