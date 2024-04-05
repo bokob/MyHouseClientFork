@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class TPSCameraController : MonoBehaviour
 {
-    
+
     [SerializeField]
     private Transform _target;
     [SerializeField]
@@ -23,7 +23,7 @@ public class TPSCameraController : MonoBehaviour
         Vector3 camAngle = _cameraArm.rotation.eulerAngles;
         float x = camAngle.x - mouseDelta.y;
 
-        if(x < 180f)
+        if (x < 180f)
         {
             x = Mathf.Clamp(x, -1f, 70f);
         }
@@ -41,4 +41,9 @@ public class TPSCameraController : MonoBehaviour
         Vector3 cameraPos = new Vector3(_target.position.x, _cameraArm.position.y, cameraPosZ);
         _cameraArm.position = cameraPos;
     }
+<<<<<<< HEAD
+
 }
+=======
+}
+>>>>>>> main
