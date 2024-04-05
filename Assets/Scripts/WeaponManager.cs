@@ -10,12 +10,13 @@ public class WeaponManager : MonoBehaviour
     private int index = 0;
     private bool isSwitching = false;
 
+    // Hold a gun when game start
     void Start()
     {
         InitializeWeapon();   
     }
 
-    // Update is called once per frame
+    // Homeowner can switch his weapon with Mouse scrollwheel & Keynumber.
     void Update()
     {
         if(Input.GetAxis("Mouse ScrollWheel") > 0 && !isSwitching)
@@ -53,7 +54,7 @@ public class WeaponManager : MonoBehaviour
         weapon[0].SetActive(true);
         index = 0;
     }
-
+    // Give a delay when switching weapons to prevent switch infinitely
     private IEnumerator SwitchDelay(int newIndex)
     {
         isSwitching = true;

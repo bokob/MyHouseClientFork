@@ -49,12 +49,12 @@ public class HomeownerController : PlayerController
 
     void HoldGun()
     {   
-        if(gunMag.activeInHierarchy)
+        if(gunMag.activeInHierarchy || handMag.activeInHierarchy)
         {
             holdingGun = true;
             anim.SetBool("holdGun", holdingGun);
         }
-        else if(!gunMag.activeInHierarchy)
+        else if(!gunMag.activeInHierarchy && !handMag.activeInHierarchy)
         {
             holdingGun = false;
             anim.SetBool("holdGun", holdingGun);
