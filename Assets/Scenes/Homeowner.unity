@@ -654,6 +654,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Homeowner
       objectReference: {fileID: 0}
+    - target: {fileID: 5894350634305102799, guid: 4d8652b4b4532df43aa7de1a6fa94942,
+        type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 3265388620181421356, guid: 440683def6589cd48a20ae193e2a3f05,
+        type: 3}
+    - target: {fileID: 6186801998231184249, guid: 4d8652b4b4532df43aa7de1a6fa94942,
+        type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 8804239135603641187, guid: 8d657c21461a4be408b43d12dd11c546,
+        type: 3}
     - target: {fileID: 6794990532185533634, guid: 4d8652b4b4532df43aa7de1a6fa94942,
         type: 3}
       propertyPath: m_LocalPosition.x
