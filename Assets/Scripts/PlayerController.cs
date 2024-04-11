@@ -35,6 +35,17 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
+    /// 이동 키 입력받기
+    /// </summary>
+    protected void MoveKeyInput()
+    {
+        dir.x = Input.GetAxis("Horizontal");
+        dir.z = Input.GetAxis("Vertical");
+        dir = dir.normalized;
+    }
+
+
+    /// <summary>
     /// 기본 이동, 걷는 애니메이션 재생
     /// </summary>
     protected virtual void Walk()

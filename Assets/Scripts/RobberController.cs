@@ -28,9 +28,7 @@ public class RobberController : PlayerController
         if (base._isDead) return;
 
         // PlayerConroller의 dir로 이동을 입력받는다.
-        base.dir.x = Input.GetAxis("Horizontal");
-        base.dir.z = Input.GetAxis("Vertical");
-        base.dir = dir.normalized;
+        base.MoveKeyInput();
 
         base.Jump();
         base.Dead();

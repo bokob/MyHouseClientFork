@@ -43,7 +43,7 @@ public class HomeownerController : PlayerController
         Run();
         HoldGun();
         AimingGun();
-        Attack();
+        // Attack();
         Reload();
     }
 
@@ -71,6 +71,7 @@ public class HomeownerController : PlayerController
     {
         if(Input.GetKeyDown("r") && holdingGun)
         {
+            Debug.Log("장전시작");
             anim.SetTrigger("reload");
             gunMag.SetActive(false);
             handMag.SetActive(true);
@@ -113,7 +114,5 @@ public class HomeownerController : PlayerController
     {
         gunMag.SetActive(true);
         handMag.SetActive(false);
-    }
-
-    
+    }   
 }
