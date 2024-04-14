@@ -13,9 +13,26 @@ public class CameraController : MonoBehaviour
     [SerializeField]
     GameObject _player;
 
+    private void Awake()
+    {
+        
+    }
+
     void LateUpdate()
     {
-        transform.position = _player.transform.position + _delta;
+        QuterView();
+    }
+
+
+    void QuterView()
+    {
+        transform.position = _player.transform.position + _delta;   // 카메라 위치
+        transform.rotation = new Quaternion(50f, 0f, 0f, 0f);       // 사선 
         transform.LookAt(_player.transform);
+    }
+
+    void TPSView()
+    {
+
     }
 }

@@ -32,14 +32,14 @@ public class Melee : Weapon
     /// </summary>
     public override void Use()
     {
-        StopCoroutine("Attack");
-        StartCoroutine("Attack");
+        StopCoroutine("MeleeAttackOn");
+        StartCoroutine("MeleeAttackOn");
     }
 
     /// <summary>
     /// 코루틴으로 Collider, TrailRenderer 특정 시간 동안만 활성화
     /// </summary>
-    IEnumerator Attack()
+    IEnumerator MeleeAttackOn()
     {
         yield return new WaitForSeconds(0.2f);
         meleeArea.enabled = true;

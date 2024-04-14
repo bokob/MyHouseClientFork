@@ -10,6 +10,11 @@ public class TestQuaterCamera : MonoBehaviour
     [SerializeField]
     GameObject _player;
 
+    private void Awake()
+    {
+        _player = GameObject.FindGameObjectWithTag("Player");
+    }
+
     private void LateUpdate()
     {
         transform.position = _player.transform.position + _delta;   // 카메라 위치
