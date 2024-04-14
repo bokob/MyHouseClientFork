@@ -14,4 +14,10 @@ public class Define
         Melee,
         Range,
     }
+
+    public enum View
+    {
+        Quater,
+        Third
+    }
 }
