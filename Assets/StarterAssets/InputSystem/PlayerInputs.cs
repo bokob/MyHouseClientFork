@@ -13,6 +13,9 @@ public class PlayerInputs : MonoBehaviour
 	public bool sprint;
 	public bool aim;
 	public bool shoot;
+	public bool swing;
+	public bool stap;
+	public bool reload;
 
 	[Header("Movement Settings")]
 	public bool analogMovement;
@@ -54,6 +57,21 @@ public class PlayerInputs : MonoBehaviour
     {
         ShootInput(value.isPressed);
     }
+
+	public void OnSwing(InputValue value)
+	{
+		SwingInput(value.isPressed);
+	}
+
+	public void OnStap(InputValue value)
+	{
+		StapInput(value.isPressed);
+	}
+
+	public void OnReload(InputValue value)
+	{
+		ReloadInput(value.isPressed);
+	}
 #endif
 
 
@@ -85,6 +103,21 @@ public class PlayerInputs : MonoBehaviour
     {
         shoot = newShootState;
     }
+
+	public void SwingInput(bool newSwingState)
+	{
+		swing = newSwingState;
+	}
+
+    public void StapInput(bool newSwingState)
+    {
+        stap = newSwingState;
+    }
+
+	public void ReloadInput(bool newReloadState)
+	{
+		reload = newReloadState;
+	}
 
     private void OnApplicationFocus(bool hasFocus)
 	{

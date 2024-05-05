@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,17 +11,13 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [Header("Player")]
-    // 움직임 속도
-    public float MoveSpeed = 2.0f;
-    // 달리기 속도
-    public float SprintSpeed = 5.335f;
+    public float MoveSpeed = 2.0f;      // 움직임 속도
+    public float SprintSpeed = 5.335f;  // 달리기 속도
 
     [Range(0.0f, 0.3f)]
-    // 움직임 방향 전환
-    public float RotationSmoothTime = 0.12f;
+    public float RotationSmoothTime = 0.12f; // 움직임 방향 전환
 
-    // 속도 가속
-    public float SpeedChangeRate = 10.0f;
+    public float SpeedChangeRate = 10.0f; // 속도 가속
 
     public float Sensitivity = 1f;
 
@@ -28,22 +26,19 @@ public class PlayerController : MonoBehaviour
     [Range(0, 1)] public float FootstepAudioVolume = 0.5f;
 
     [Space(10)]
-    // 점프 높이
-    public float JumpHeight = 1.2f;
+    public float JumpHeight = 1.2f; // 점프 높이
 
     [Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
     public float Gravity = -15.0f;
 
     [Space(10)]
     [Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
-    // 점프 쿨타임
-    public float JumpTimeout = 0.50f;
+    public float JumpTimeout = 0.50f; // 점프 쿨타임
 
     [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
     public float FallTimeout = 0.15f;
 
-    // 지면에 닿았는지 여부
-    public bool Grounded = true;
+    public bool Grounded = true; // 지면에 닿았는지 여부
 
     [Tooltip("Useful for rough ground")]
     public float GroundedOffset = -0.14f;
@@ -70,41 +65,56 @@ public class PlayerController : MonoBehaviour
     [Tooltip("For locking the camera position on all axis")]
     public bool LockCameraPosition = false;
 
+    protected GameObject _mainCamera;
     // cinemachine
     protected float _cinemachineTargetYaw;
     protected float _cinemachineTargetPitch;
 
+    protected CharacterController _controller;
+    protected PlayerInputs _input;
+
     // player
+#if ENABLE_INPUT_SYSTEM
+    protected PlayerInput _playerInput;
+#endif
     protected float _speed;
     protected float _animationBlend;
     protected float _targetRotation = 0.0f;
     protected float _rotationVelocity;
     protected float _verticalVelocity;
     protected float _terminalVelocity = 53.0f;
+    protected bool _rotateOnMove = true;
+
+    Status _status;
 
     // timeout deltatime
     protected float _jumpTimeoutDelta;
     protected float _fallTimeoutDelta;
 
+    protected Animator _animator;
     // animation IDs
     protected int _animIDSpeed;
     protected int _animIDGrounded;
     protected int _animIDJump;
     protected int _animIDFreeFall;
     protected int _animIDMotionSpeed;
-
-#if ENABLE_INPUT_SYSTEM 
-    protected PlayerInput _playerInput;
-#endif
-    protected Animator _animator;
-    protected CharacterController _controller;
-    protected PlayerInputs _input;
-    protected GameObject _mainCamera;
-    protected bool _rotateOnMove = true;
+    protected bool _hasAnimator;
 
     protected const float _threshold = 0.01f;
 
-    protected bool _hasAnimator;
+    [Header("무기 관련")]
+    // [SerializeField] protected Weapon weapon;
+    [SerializeField] protected WeaponManager weaponManager;
+    [SerializeField] public GameObject _leftItemHand;           // 왼손에 있는 아이템 (자식: 탄창)
+    [SerializeField] public GameObject _rightItemHand;          // 오른손에 있는 아이템 (자식: 무기)
+    [SerializeField] public GameObject _melee;                  // 근접 무기 오브젝트
+
+    [Header("공격 관련")]
+    bool isSwingReady;  // 공격 준비
+    float swingDelay;   // 공격 딜레이
+    bool isStabReady;  // 공격 준비
+    float stabDelay;   // 공격 딜레이
+    public Melee meleeWeapon; // 근접 무기
 
     protected bool IsCurrentDeviceMouse
     {
@@ -125,6 +135,23 @@ public class PlayerController : MonoBehaviour
         {
             _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
         }
+
+        gameObject.AddComponent<Status>();
+        _status = gameObject.GetComponent<Status>();
+
+
+        // 무기 찾기
+        // 하위의 모든 자식 오브젝트 중 "Hand" 태그 갖는 오브젝트 찾기
+        GameObject[] itemHand = GetComponentsInChildren<Transform>().Where(child => child.CompareTag("Hand")).Select(child=>child.gameObject).ToArray();
+        // GameObject[] itemHand = GameObject.FindGameObjectsWithTag("Hand");
+        Array.Sort(itemHand, (a, b) => a.name.CompareTo(b.name)); // 태그로 찾으면 순서 보장 X, 따라서 정렬
+
+        _leftItemHand = itemHand[0];
+        _rightItemHand = itemHand[1];
+
+        // 근접 무기 접근을 위한 변수 설정
+        _melee = _rightItemHand.transform.GetChild(0).gameObject;
+        meleeWeapon = _melee.GetComponent<Melee>();
     }
 
     private void Start()
@@ -145,6 +172,7 @@ public class PlayerController : MonoBehaviour
         // reset our timeouts on start
         _jumpTimeoutDelta = JumpTimeout;
         _fallTimeoutDelta = FallTimeout;
+        
     }
 
     // 애니메이션 파라미터 해시로 관리
@@ -237,7 +265,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-
     // 점프
     protected void JumpAndGravity()
     {
@@ -329,121 +356,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-
-    //#region 구버전
-    //protected string _nickname;  // 닉네임
-    //protected Define.Role _role; // 플레이어 역할
-
-    //[Header("컴포넌트")]
-    //protected Rigidbody rb;
-    //protected Animator anim;
-    //protected Camera _thirdCamera;
-
-    //[Space(10)]
-
-    //[Header ("이동 관련")]
-    //protected Vector3 dir = Vector3.zero;
-    //protected bool _isGround;
-    //protected float _moveSpeed;
-    //protected float _walkSpeed = 5f;
-    //protected float _runSpeed = 15f;
-    //protected float _jumpHeight = 4f;         // 점프 파워
-    //bool isPressedRunKey;                     // 달리는 상태 판별
-
-    //[Space(10)]
-
-    //[Header ("상태 관련")]
-    //protected bool _isDead;                    // 죽었는지 판별
-    //protected Status _status;
-
-    //[Space(10)]
-
-    //[Header ("공격 관련")]
-    //bool swingKeyDown;  // 마우스 왼쪽 키 눌렸는지
-    //bool isSwingReady;  // 공격 준비
-    //float swingDelay;   // 공격 딜레이
-    //bool stabKeyDown;  // 마우스 왼쪽 키 눌렸는지
-    //bool isStabReady;  // 공격 준비
-    //float stabDelay;   // 공격 딜레이
-    //GameObject _rightHand;
-    //public Melee meleeWeapon; // 근접 무기
-
-    //protected void Awake()
-    //{
-    //    rb = GetComponent<Rigidbody>();
-    //    anim = GetComponentInChildren<Animator>();
-
-    //    //_thirdCamera = GameObject.Find("ThirdCamera").GetComponent<Camera>();
-
-    //    gameObject.AddComponent<Status>();
-    //    _status = gameObject.GetComponent<Status>();
-    //}
-
-    //protected void MoveKeyInput()
-    //{
-    //    dir.x = Input.GetAxis("Horizontal");
-    //    dir.z = Input.GetAxis("Vertical");
-    //    dir = dir.normalized;
-    //}
-
-    ///// <summary>
-    ///// 기본 이동, 걷는 애니메이션 재생
-    ///// </summary>
-    //protected virtual void Walk()
-    //{
-    //    _moveSpeed = _walkSpeed;
-    //    if (dir != Vector3.zero)
-    //    {
-    //        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 0.2f);
-    //        transform.position += dir * _moveSpeed * Time.deltaTime;
-    //    }
-    //    anim.SetBool("isWalk", dir != Vector3.zero);
-    //}
-
-    ///// <summary>
-    ///// 달리기, 이동 속도를 변화시키고 달리는 애니메이션 재생
-    ///// </summary>
-    //protected virtual void Run() // 달리는 속도로 만들기
-    //{
-    //    isPressedRunKey = Input.GetKey(KeyCode.LeftShift);
-    //    if (isPressedRunKey)
-    //    {
-    //        _moveSpeed = _runSpeed;
-    //    }
-    //    else
-    //        _moveSpeed = _walkSpeed;
-    //    anim.SetBool("isRun", isPressedRunKey && dir != Vector3.zero);
-    //}
-
-    ///// <summary>
-    ///// Ground인지 판단
-    ///// </summary>
-    //protected void IsGround()
-    //{
-    //    Debug.DrawRay(transform.position + (Vector3.up * 0.2f), Vector3.down, Color.red);
-
-    //    RaycastHit hit;
-    //    int layerMask = 1 << LayerMask.NameToLayer("Ground");
-    //    if (Physics.Raycast(transform.position + (Vector3.up * 0.2f), Vector3.down, out hit, 0.3f, layerMask))
-    //        _isGround = true;
-    //    else
-    //        _isGround = false;
-    //}
-
-    ///// <summary>
-    ///// 점프
-    ///// </summary>
-    //protected void Jump()
-    //{
-    //    IsGround();
-    //    if (Input.GetKeyDown(KeyCode.Space) && _isGround)
-    //    {
-    //        Vector3 jumpPower = Vector3.up * _jumpHeight;
-    //        rb.AddForce(jumpPower, ForceMode.VelocityChange);
-    //        anim.SetTrigger("setJump");
-    //    }
-    //}
-
     ///// <summary>
     ///// hp가 0이되면 사망
     ///// </summary>
@@ -456,43 +368,36 @@ public class PlayerController : MonoBehaviour
     //    }
     //}
 
+    /// <summary>
+    /// 근접 공격: 좌클릭(휘두르기), 우클릭(찌르기)
+    /// </summary>
+    protected void MeleeAttack()
+    {
+        // 무기 오브젝트가 없거나, 무기가 비활성화 되어 있거나, 무기가 없으면 공격 취소
+        if (_melee == null || _melee.activeSelf == false || meleeWeapon == null)
+            return;
 
-    ///// <summary>
-    ///// 강도의 근접 공격: 좌클릭(휘두르기), 우클릭(찌르기)
-    ///// </summary>
-    //protected void MeleeAttack()
-    //{
-    //    swingKeyDown = Input.GetMouseButtonDown(0);
-    //    stabKeyDown = Input.GetMouseButtonDown(1);
+        swingDelay += Time.deltaTime;
+        stabDelay += Time.deltaTime;
+        isSwingReady = meleeWeapon.Rate < swingDelay; // 공격속도가 공격 딜레이보다 작으면 공격준비 완료
+        isStabReady = meleeWeapon.Rate < stabDelay;
 
-    //    if (meleeWeapon == null)
-    //    {
-    //        Debug.Log("현재 장착된 무기가 없음");
-    //        return;
-    //    }
-
-    //    swingDelay += Time.deltaTime;
-    //    stabDelay += Time.deltaTime;
-    //    isSwingReady = meleeWeapon.Rate < swingDelay; // 공격속도가 공격 딜레이보다 작으면 공격준비 완료
-    //    isStabReady = meleeWeapon.Rate < stabDelay;
-
-    //    if (swingKeyDown && isSwingReady && _isGround) // 휘두르기
-    //    {
-    //        Debug.Log("시작");
-    //        meleeWeapon.Use();
-    //        anim.SetTrigger("setSwing");
-    //        swingDelay = 0;
-    //        swingKeyDown = false;
-    //    }
-    //    else if (stabKeyDown && isStabReady && _isGround) // 찌르기
-    //    {
-    //        Debug.Log("시작");
-    //        meleeWeapon.Use();
-    //        anim.SetTrigger("setStab");
-    //        stabDelay = 0;
-    //        stabKeyDown = false;
-    //    }
-    //}
-    //#endregion
-
+        if (_input.swing && isSwingReady && Grounded) // 휘두르기
+        {
+            Debug.Log("휘두르기");
+            meleeWeapon.Use();
+            _animator.SetTrigger("setSwing");
+            swingDelay = 0;
+        }
+        else if (_input.stap && isStabReady && Grounded) // 찌르기
+        {
+            Debug.Log("찌르기");
+            meleeWeapon.Use();
+            _animator.SetTrigger("setStab");
+            stabDelay = 0;
+            
+        }
+        _input.swing = false;
+        _input.stap = false;
+    }
 }
