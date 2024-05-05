@@ -15,6 +15,7 @@ public class RobberController : PlayerController
         base.JumpAndGravity();
         base.GroundedCheck();
         base.Move();
+        base.MeleeAttack();
     }
 
     private void LateUpdate()
