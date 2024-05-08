@@ -17,6 +17,17 @@ public class Item : MonoBehaviour
     [SerializeField]
     protected Define.Item itemType;
 
+    void Start()
+    {
+        ItemInit();
+    }
+
+    void Update()
+    {
+        Floating();
+    }
+
+
     // 아이템 초기 세팅
     protected void ItemInit()
     {
