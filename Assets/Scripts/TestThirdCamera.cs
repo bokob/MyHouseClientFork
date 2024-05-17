@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
 using TreeEditor;
@@ -42,7 +43,7 @@ public class TestThirdCamera : MonoBehaviour
         _rotationY += mouseX;
         _rotationX += mouseY;
 
-        // À§ ¾Æ·¡ °¢µµ Á¦ÇÑ
+        // ï¿½ï¿½ ï¿½Æ·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         _rotationX = Mathf.Clamp(_rotationX, _rotationXMinMax.x, _rotationXMinMax.y);
 
         Vector3 nextRotation = new Vector3(_rotationX, _rotationY);
@@ -50,7 +51,8 @@ public class TestThirdCamera : MonoBehaviour
         _currentRotation = Vector3.SmoothDamp(_currentRotation, nextRotation, ref _smoothVelocity, _smoothTime);
         transform.localEulerAngles = _currentRotation;
 
-        // ¸ñÇ¥ ÁöÁ¡¿¡¼­ Ä«¸Þ¶óÀÇ À§Ä¡¸¦ »©°í ¸ñÇ¥±îÁöÀÇ °Å¸®¸¦ °öÇØ¼­ ±×¸¸Å­ ¶³¾îÁ÷°Ô À§Ä¡½ÃÅ²´Ù.
+        // ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½Þ¶ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½×¸ï¿½Å­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½Å²ï¿½ï¿½.
         transform.position = _target.position - transform.forward * _distanceFromTarget;
     }
 }
+#endif
