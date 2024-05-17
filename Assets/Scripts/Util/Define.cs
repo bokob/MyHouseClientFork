@@ -6,6 +6,7 @@ public class Define
 {
     public enum Role
     {
+        None,
         Houseowner,
         Robber
     }

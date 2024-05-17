@@ -42,30 +42,30 @@ public class Gun : Weapon
     HouseownerController houseownerController;
     PlayerInputs playerInputs;
     Animator animator;
-    RigBuilder rigBuilder; // IK 활성/비활성화를 조절하기 위해 접근
+    public RigBuilder rigBuilder; // IK 활성/비활성화를 조절하기 위해 접근
     #endregion
 
-    void Awake()
-    {
-        houseownerController = GetComponent<HouseownerController>();
-        playerInputs = GetComponent<PlayerInputs>();
-        animator = GetComponent<Animator>();
-        rigBuilder = transform.root.GetChild(0).GetComponent<RigBuilder>();
-    }
+    Vector3 originalRotation; // 총의 원래 회전값
 
-    void Update()
+    void Start()
     {
-        Use();
+        originalRotation = transform.localEulerAngles;
+
+        houseownerController = base.Master.gameObject.GetComponent<HouseownerController>();
+        playerInputs = base.Master.gameObject.GetComponent<PlayerInputs>();
+        animator = base.Master.gameObject.GetComponent<Animator>();
+        //rigBuilder = transform.root.GetChild(0).GetComponent<RigBuilder>();
     }
 
     void HitRayCheck()
     {
         mouseWorldPosition = Vector3.zero;
         Vector2 screenCenterPoint = new Vector2(Screen.width / 2f, Screen.height / 2f);
-        
-        if(isShoot) // 쏠 때 반동
+
+        if (isShoot) // 쏠 때 반동
         {
             Debug.Log("<반동>");
+            animator.Play("Recoil");
             float recoilAmount = 20f; // 반동 정도
 
             // 반동을 위한 무작위한 변위 생성
@@ -96,6 +96,9 @@ public class Gun : Weapon
         if (playerInputs.aim)
         {
             isAim = true;
+
+            transform.localEulerAngles = new Vector3(-125f, 0f, 90f);
+
             rigBuilder.enabled = true; // IK 설정
 
             // 조준 시점으로 카메라 변경
@@ -107,10 +110,10 @@ public class Gun : Weapon
 
             // 조준하는 방향으로 회전
             Vector3 worldAimTarget = mouseWorldPosition;
-            worldAimTarget.y = transform.position.y;
-            Vector3 aimDirection = (worldAimTarget - transform.position).normalized;
+            worldAimTarget.y = base.Master.position.y;
+            Vector3 aimDirection = (worldAimTarget - base.Master.position).normalized;
 
-            transform.forward = Vector3.Lerp(transform.forward, aimDirection, Time.deltaTime * 20f);
+            base.Master.forward = Vector3.Lerp(base.Master.forward, aimDirection, Time.deltaTime * 20f);
         }
         else
         {
@@ -118,6 +121,8 @@ public class Gun : Weapon
             rigBuilder.enabled = false; // IK 해제
 
             animator.SetBool("isAim", false);
+            transform.localEulerAngles = originalRotation;
+
 
             // 원래 시점으로 카메라 변경
             aimVirtualCamera.gameObject.SetActive(false);
@@ -172,7 +177,7 @@ public class Gun : Weapon
             if (hitRigidbody != null)
             {
                 // 충격 가할 방향
-                Vector3 forceDirection = hitTransform.position - transform.position;
+                Vector3 forceDirection = hitTransform.position - base.Master.position;
                 // 충격 적용
                 hitRigidbody.AddForce(forceDirection.normalized * 50.0f, ForceMode.Impulse);
             }
@@ -245,7 +250,7 @@ public class Gun : Weapon
     IEnumerator ReactionCoroutine()
     {
         isShoot = true;
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
         isShoot = false;
     }
 
