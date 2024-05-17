@@ -3,6 +3,7 @@ using System.Collections;
 using System.Diagnostics.Tracing;
 using System.Linq;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -29,27 +30,16 @@ public class PlayerController : MonoBehaviour
 
     [Space(10)]
     public float JumpHeight = 1.2f; // 점프 높이
-
-    [Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
-    public float Gravity = -15.0f;
+    public float Gravity = -15.0f; // 유니티 엔진에서 기본 중력은 -9.81f
 
     [Space(10)]
-    [Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
     public float JumpTimeout = 0.50f; // 점프 쿨타임
-
-    [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
-    public float FallTimeout = 0.15f;
+    public float FallTimeout = 0.15f; // 떨어지는 상태로 진입하는데 걸리는 시간
 
     public bool Grounded = true; // 지면에 닿았는지 여부
-
-    [Tooltip("Useful for rough ground")]
-    public float GroundedOffset = -0.14f;
-
-    [Tooltip("The radius of the grounded check. Should match the radius of the CharacterController")]
-    public float GroundedRadius = 0.28f;
-
-    [Tooltip("What layers the character uses as ground")]
-    public LayerMask GroundLayers;
+    public float GroundedOffset = -0.14f; // 지면 거칠기
+    public float GroundedRadius = 0.28f; // 캐릭터 컨트롤러에서 구체 형성해서 지면체크할 때, 구체 반지름
+    public LayerMask GroundLayers; // 땅에 해당하는 레이어 마스크
 
     [Header("Cinemachine")]
     [Tooltip("The follow target set in the Cinemachine Virtual Camera that the camera will follow")]
@@ -73,7 +63,7 @@ public class PlayerController : MonoBehaviour
     protected float _cinemachineTargetPitch;
 
     protected CharacterController _controller;
-    protected PlayerInputs _input;
+    public PlayerInputs _input;
 
     // player
 #if ENABLE_INPUT_SYSTEM
@@ -105,47 +95,49 @@ public class PlayerController : MonoBehaviour
     protected const float _threshold = 0.01f;
 
     [Header("무기 관련")]
-    // [SerializeField] protected Weapon weapon;
     [SerializeField] protected WeaponManager weaponManager;
-    [SerializeField] public GameObject _leftItemHand;           // 왼손에 있는 아이템 (자식: 탄창)
-    [SerializeField] public GameObject _rightItemHand;          // 오른손에 있는 아이템 (자식: 무기)
-    [SerializeField] public GameObject _melee;                  // 근접 무기 오브젝트
-    [SerializeField] public GameObject _gun;
 
     [Header("공격 관련")]
     bool isSwingReady;  // 공격 준비
     float swingDelay;   // 공격 딜레이
     bool isStabReady;  // 공격 준비
     float stabDelay;   // 공격 딜레이
-    public Melee meleeWeapon; // 근접 무기
-    public Gun gunWeapon;
 
     [SerializeField] public Define.Role PlayerRole { get; set; } = Define.Role.None;
-    [Header("플레이어 역할 변환 관련")]
-    [SerializeField] protected GameObject robberMesh;
-    [SerializeField] protected GameObject houseownerMesh;
-    RuntimeAnimatorController houseownerAnimController;
-    Avatar houseownerAvatar;
-    [SerializeField] GameObject quaterViewCamera;
 
     private void Awake()
     {
-        // 강도->집주인 시에 사용할 집주인 애니메이션 준비
-        houseownerAnimController = Resources.Load<RuntimeAnimatorController>("Animations/HouseownerAnimations/HouseownerAnimationController");
-        houseownerAvatar = Resources.Load<Avatar>("Animations/HouseownerAnimations/HouseownerAvatar");
+        PlayerInit();
+        // 플레이어 무기 세팅
+        weaponManager.PlayerWeaponInit();
+    }
 
+    void PlayerInit()
+    {
         // get a reference to our main camera
         if (_mainCamera == null)
         {
             _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
         }
-
+        // PlayerCameraRoot 설정
+        CinemachineCameraTarget = transform.GetChild(2).gameObject;
+        
         gameObject.AddComponent<Status>();
         _status = gameObject.GetComponent<Status>();
         weaponManager = GetComponent<WeaponManager>();
+    }
 
-        // 플레이어 무기 세팅
-        PlayerWeaponInit();
+    private void Update()
+    {
+        JumpAndGravity();   // 점프
+        GroundedCheck();    // 지면체크
+        Move();             // 이동
+        MeleeAttack();      // 근접 공격
+    }
+
+    private void LateUpdate()
+    {
+        CameraRotation();
     }
 
     protected bool IsCurrentDeviceMouse
@@ -160,39 +152,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void PlayerWeaponInit() // 무기 세팅
-    {
-        // 무기 리스트 비우기
-        weaponManager.ClearWeaponList();
-
-        // 무기 찾기
-        // 하위의 모든 자식 오브젝트 중 "Hand" 태그 갖는 오브젝트 찾기
-        GameObject[] itemHand = GetComponentsInChildren<Transform>().Where(child => child.CompareTag("Hand")).Select(child => child.gameObject).ToArray();
-        // GameObject[] itemHand = GameObject.FindGameObjectsWithTag("Hand");
-        Array.Sort(itemHand, (a, b) => a.name.CompareTo(b.name)); // 태그로 찾으면 순서 보장 X, 따라서 정렬
-
-        _leftItemHand = itemHand[0];
-        _rightItemHand = itemHand[1];
-
-        // 근접 무기 접근을 위한 변수 설정
-        _melee = _rightItemHand.transform.GetChild(0).gameObject;
-
-        meleeWeapon = _melee.GetComponent<Melee>();
-        weaponManager.AddWeaponInList(_melee);
-
-        // 원거리 무기 접근을 위한 변수 설정
-        if (_rightItemHand.transform.childCount == 2) // 오른손에 무언가 있는 경우
-        {
-            _gun = _rightItemHand.transform.GetChild(1).gameObject;
-            gunWeapon = _gun.GetComponent<Gun>();
-            weaponManager.AddWeaponInList(_gun);
-        }
-
-        // 무기 매니저 초기화
-        weaponManager.InitializeWeapon();
-    }
-
-    private void Start()
+    void Start()
     {
         _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
 
@@ -214,7 +174,7 @@ public class PlayerController : MonoBehaviour
     }
 
     // 애니메이션 파라미터 해시로 관리
-    private void AssignAnimationIDs()
+    void AssignAnimationIDs()
     {
         _animIDSpeed = Animator.StringToHash("Speed");
         _animIDGrounded = Animator.StringToHash("Grounded");
@@ -223,8 +183,7 @@ public class PlayerController : MonoBehaviour
         _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
     }
 
-    // 이동
-    protected void Move()
+    void Move()
     {
         // set target speed based on move speed, sprint speed and if sprint is pressed
         float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
@@ -287,10 +246,10 @@ public class PlayerController : MonoBehaviour
             _animator.SetFloat(_animIDSpeed, _animationBlend);
             _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
         }
-    }
+    }// 이동
 
     // 지면 체크
-    protected void GroundedCheck()
+    void GroundedCheck()
     {
         // set sphere position, with offset
         Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
@@ -304,7 +263,7 @@ public class PlayerController : MonoBehaviour
     }
 
     // 점프
-    protected void JumpAndGravity()
+    void JumpAndGravity()
     {
         if (Grounded)
         {
@@ -385,6 +344,48 @@ public class PlayerController : MonoBehaviour
         Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
     }
 
+    public void Dead()
+    {
+        if (_status.Hp <= 0 || Input.GetKeyDown(KeyCode.P))
+        {
+            _animator.SetTrigger("setDie");
+            PlayerRole = Define.Role.None;
+        }
+    }
+
+    /// <summary>
+    /// 근접 공격: 좌클릭(휘두르기), 우클릭(찌르기)
+    /// </summary>
+    public void MeleeAttack()
+    {
+        // 무기 오브젝트가 없거나, 무기가 비활성화 되어 있거나, 무기가 없으면 공격 취소
+        if (weaponManager._melee == null || weaponManager._melee.activeSelf == false || weaponManager.meleeWeapon == null)
+            return;
+
+        swingDelay += Time.deltaTime;
+        stabDelay += Time.deltaTime;
+        isSwingReady = weaponManager.meleeWeapon.Rate < swingDelay; // 공격속도가 공격 딜레이보다 작으면 공격준비 완료
+        isStabReady = weaponManager.meleeWeapon.Rate < stabDelay;
+
+        if (_input.swing && isSwingReady && Grounded) // 휘두르기
+        {
+            Debug.Log("휘두르기");
+            weaponManager.meleeWeapon.Use();
+            _animator.SetTrigger("setSwing");
+            swingDelay = 0;
+        }
+        else if (_input.stap && isStabReady && Grounded) // 찌르기
+        {
+            Debug.Log("찌르기");
+            weaponManager.meleeWeapon.Use();
+            _animator.SetTrigger("setStab");
+            stabDelay = 0;
+            
+        }
+        _input.swing = false;
+        _input.stap = false;
+    }
+
     // 땅에 닿을 때 착지 소리 나게 하는 애니메이션 이벤트
     private void OnLand(AnimationEvent animationEvent)
     {
@@ -397,84 +398,56 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    ///// <summary>
-    ///// hp가 0이되면 사망
-    ///// </summary>
-    //protected void Dead()
-    //{
-    //    if (_status.Hp <= 0 || Input.GetKeyDown(KeyCode.P))
-    //    {
-    //        anim.SetTrigger("setDie");
-    //        _isDead = true;
-    //    }
-    //}
 
-    /// <summary>
-    /// 근접 공격: 좌클릭(휘두르기), 우클릭(찌르기)
-    /// </summary>
-    protected void MeleeAttack()
+    // 카메라 각도 제한
+    private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
     {
-        // 무기 오브젝트가 없거나, 무기가 비활성화 되어 있거나, 무기가 없으면 공격 취소
-        if (_melee == null || _melee.activeSelf == false || meleeWeapon == null)
-            return;
-
-        swingDelay += Time.deltaTime;
-        stabDelay += Time.deltaTime;
-        isSwingReady = meleeWeapon.Rate < swingDelay; // 공격속도가 공격 딜레이보다 작으면 공격준비 완료
-        isStabReady = meleeWeapon.Rate < stabDelay;
-
-        if (_input.swing && isSwingReady && Grounded) // 휘두르기
-        {
-            Debug.Log("휘두르기");
-            meleeWeapon.Use();
-            _animator.SetTrigger("setSwing");
-            swingDelay = 0;
-        }
-        else if (_input.stap && isStabReady && Grounded) // 찌르기
-        {
-            Debug.Log("찌르기");
-            meleeWeapon.Use();
-            _animator.SetTrigger("setStab");
-            stabDelay = 0;
-            
-        }
-        _input.swing = false;
-        _input.stap = false;
+        if (lfAngle < -360f) lfAngle += 360f;
+        if (lfAngle > 360f) lfAngle -= 360f;
+        return Mathf.Clamp(lfAngle, lfMin, lfMax);
     }
 
-    public void ChangeToHouseowner()
+    // 카메라 회전
+    private void CameraRotation()
     {
-        /*
-         1. 쿼터뷰 카메라 삭제
-        2. Robber 모델 -> Houseowner 모델 변환
-        3. 
-         */
-        //Destroy(transform.GetChild(0).gameObject);
-        //GameObject houseownerModel = Instantiate(prefab, transform.position, transform.rotation, transform);
-        //houseownerModel.transform.SetSiblingIndex(0);
+        if (PlayerRole == Define.Role.Robber) return;
 
-        // 메시 전환 및 파괴
-        robberMesh.SetActive(false);
-        houseownerMesh.SetActive(true);
-        Destroy(transform.GetChild(0).gameObject);
+        // if there is an input and camera position is not fixed
+        if (_input.look.sqrMagnitude >= _threshold && !LockCameraPosition)
+        {
+            //Don't multiply mouse input by Time.deltaTime;
+            float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
 
-        // 집주인 애니메이션들로 교체
-        _animator.runtimeAnimatorController = houseownerAnimController; 
-        _animator.avatar = houseownerAvatar;
+            // 정조준 할 때 천천히 돌아가야 하니까 Sensitivity를 넣어준다.
+            _cinemachineTargetYaw += _input.look.x * deltaTimeMultiplier * Sensitivity;
+            _cinemachineTargetPitch += _input.look.y * deltaTimeMultiplier * Sensitivity;
+        }
 
-        // 집주인으로 역할 지정
-        PlayerRole = Define.Role.Houseowner;
+        // clamp our rotations so our values are limited 360 degrees
+        _cinemachineTargetYaw = ClampAngle(_cinemachineTargetYaw, float.MinValue, float.MaxValue);
+        _cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, BottomClamp, TopClamp);
 
-        // 쿼터뷰 비활성화
-        quaterViewCamera.SetActive(false);
+        // 시네마신 카메라가 목표를 따라감
+        CinemachineCameraTarget.transform.rotation = Quaternion.Euler(_cinemachineTargetPitch + CameraAngleOverride, _cinemachineTargetYaw, 0.0f);
+    }
 
-        // 강도 스크립트 비활성화
-        gameObject.GetComponent<RobberController>().enabled = false;
+    public void SetSensitivity(float newSensitivity)
+    {
+        Sensitivity = newSensitivity;
+    }
 
-        // 플레이어 무기 다시 세팅
-        PlayerWeaponInit();
+    public void SetRotateOnMove(bool newRotateOnMove)
+    {
+        _rotateOnMove = newRotateOnMove;
+    }
 
-        // 집주인 스크립트 활성화
-        gameObject.GetComponent<HouseownerController>().enabled = true;
+    public void SetRoleAnimator(RuntimeAnimatorController animController, Avatar avatar)
+    {
+        _animator.runtimeAnimatorController = animController;
+        _animator.avatar = avatar;
+
+        // 애니메이터 속성 교체하고 껐다가 켜야 동작함
+        _animator.enabled = false;
+        _animator.enabled = true;
     }
 } 
