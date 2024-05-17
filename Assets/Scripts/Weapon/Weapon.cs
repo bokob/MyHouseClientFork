@@ -9,12 +9,15 @@ public class Weapon : MonoBehaviour
 {
     public Define.Type Type { get; protected set; } // 무기 타입
 
+    public Transform Master { get; protected set; } // 주인
+
     public int Attack { get; protected set; }       // 공격력
     public float Rate { get; protected set; } = 0.5f;      // 공격속도
 
 
     void Awake()
     {
+        RecordMaster();
         // TODO
         /*
          무기가 다양해질 때 무기 이름이나 타입에 따라
@@ -29,5 +32,38 @@ public class Weapon : MonoBehaviour
     {
         // TODO
         // 무기에 맞는 공격 기능
+    }
+
+    /// <summary>
+    /// 현재 주인이 누구인지 확인
+    /// </summary>
+    public virtual void MasterPerception()
+    {
+        if (Master != null)
+        {
+            Debug.Log("Master: " + Master.name);
+        }
+        else
+        {
+            Debug.Log("No master assigned.");
+        }
+    }
+
+    /// <summary>
+    /// 최상위 부모를 주인으로 기록하는 메서드
+    /// </summary>
+    public void RecordMaster()
+    {
+        Transform current = transform;
+
+        // 최상위 부모까지 탐색
+        while (current.parent != null)
+        {
+            current = current.parent;
+        }
+
+        // 최상위 부모를 Master로 설정
+        Master = current;
+        Debug.Log("무기 주인: " + Master.name);
     }
 }

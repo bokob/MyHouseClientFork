@@ -13,7 +13,7 @@ public class Managers : MonoBehaviour
     //DataManager _data = new DataManager();
     //GameManager _game = new GameManager();
     //InputManager _input = new InputManager();
-    //ResourceManager _resource = new ResourceManager();
+    ResourceManager _resource = new ResourceManager();
     //SoundManager _sound = new SoundManager();
 
     //public static DataManager Data { get { return Instance._data; } }

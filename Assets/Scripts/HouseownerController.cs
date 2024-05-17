@@ -1,12 +1,12 @@
 ﻿ using UnityEngine;
 #if ENABLE_INPUT_SYSTEM 
 using UnityEngine.InputSystem;
+using static UnityEngine.UIElements.UxmlAttributeDescription;
 #endif
 
 // 진짜 집주인 컨트롤러
 public class HouseownerController : PlayerController
 {
-    
     private void Update()
     {
         base._hasAnimator = TryGetComponent(out base._animator);
@@ -14,11 +14,33 @@ public class HouseownerController : PlayerController
         base.JumpAndGravity();
         base.GroundedCheck();
         base.Move();
+
+        if (base._melee == null)
+        {
+            base.PlayerWeaponInit();
+
+            if (base._melee != null) Debug.Log("근접 무기 인식!");
+            if (base._gun != null) Debug.Log("총기 인식!");
+        }
+
+        if (base._melee.activeSelf)
+            base.MeleeAttack();
+        else if (base._gun.activeSelf)
+            base.gunWeapon.Use();
+
+        // 총 관련해서 행동 안하고 있을 때만 무기 바꾸기
+        if (!base._input.aim && !base._input.reload)
+            base.weaponManager.HandleWeaponSwitching();
     }
 
     private void LateUpdate()
     {
         CameraRotation();
+    }
+
+    private void Init()
+    {
+
     }
 
 
@@ -60,5 +82,10 @@ public class HouseownerController : PlayerController
     public void SetRotateOnMove(bool newRotateOnMove)
     {
         _rotateOnMove = newRotateOnMove;
+    }
+
+    public void ChangeIsHoldGun(bool newIsHoldGun)
+    {
+        base._animator.SetBool("isHoldGun", newIsHoldGun);
     }
 }

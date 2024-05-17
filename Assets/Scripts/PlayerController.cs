@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 플레이어(집주인, 강도)가 공통적으로 상속받는 클래스
@@ -108,6 +110,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public GameObject _leftItemHand;           // 왼손에 있는 아이템 (자식: 탄창)
     [SerializeField] public GameObject _rightItemHand;          // 오른손에 있는 아이템 (자식: 무기)
     [SerializeField] public GameObject _melee;                  // 근접 무기 오브젝트
+    [SerializeField] public GameObject _gun;
 
     [Header("공격 관련")]
     bool isSwingReady;  // 공격 준비
@@ -115,6 +118,35 @@ public class PlayerController : MonoBehaviour
     bool isStabReady;  // 공격 준비
     float stabDelay;   // 공격 딜레이
     public Melee meleeWeapon; // 근접 무기
+    public Gun gunWeapon;
+
+    [SerializeField] public Define.Role PlayerRole { get; set; } = Define.Role.None;
+    [Header("플레이어 역할 변환 관련")]
+    [SerializeField] protected GameObject robberMesh;
+    [SerializeField] protected GameObject houseownerMesh;
+    RuntimeAnimatorController houseownerAnimController;
+    Avatar houseownerAvatar;
+    [SerializeField] GameObject quaterViewCamera;
+
+    private void Awake()
+    {
+        // 강도->집주인 시에 사용할 집주인 애니메이션 준비
+        houseownerAnimController = Resources.Load<RuntimeAnimatorController>("Animations/HouseownerAnimations/HouseownerAnimationController");
+        houseownerAvatar = Resources.Load<Avatar>("Animations/HouseownerAnimations/HouseownerAvatar");
+
+        // get a reference to our main camera
+        if (_mainCamera == null)
+        {
+            _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+        }
+
+        gameObject.AddComponent<Status>();
+        _status = gameObject.GetComponent<Status>();
+        weaponManager = GetComponent<WeaponManager>();
+
+        // 플레이어 무기 세팅
+        PlayerWeaponInit();
+    }
 
     protected bool IsCurrentDeviceMouse
     {
@@ -128,21 +160,14 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void Awake()
+    public void PlayerWeaponInit() // 무기 세팅
     {
-        // get a reference to our main camera
-        if (_mainCamera == null)
-        {
-            _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-        }
-
-        gameObject.AddComponent<Status>();
-        _status = gameObject.GetComponent<Status>();
-
+        // 무기 리스트 비우기
+        weaponManager.ClearWeaponList();
 
         // 무기 찾기
         // 하위의 모든 자식 오브젝트 중 "Hand" 태그 갖는 오브젝트 찾기
-        GameObject[] itemHand = GetComponentsInChildren<Transform>().Where(child => child.CompareTag("Hand")).Select(child=>child.gameObject).ToArray();
+        GameObject[] itemHand = GetComponentsInChildren<Transform>().Where(child => child.CompareTag("Hand")).Select(child => child.gameObject).ToArray();
         // GameObject[] itemHand = GameObject.FindGameObjectsWithTag("Hand");
         Array.Sort(itemHand, (a, b) => a.name.CompareTo(b.name)); // 태그로 찾으면 순서 보장 X, 따라서 정렬
 
@@ -151,7 +176,20 @@ public class PlayerController : MonoBehaviour
 
         // 근접 무기 접근을 위한 변수 설정
         _melee = _rightItemHand.transform.GetChild(0).gameObject;
+
         meleeWeapon = _melee.GetComponent<Melee>();
+        weaponManager.AddWeaponInList(_melee);
+
+        // 원거리 무기 접근을 위한 변수 설정
+        if (_rightItemHand.transform.childCount == 2) // 오른손에 무언가 있는 경우
+        {
+            _gun = _rightItemHand.transform.GetChild(1).gameObject;
+            gunWeapon = _gun.GetComponent<Gun>();
+            weaponManager.AddWeaponInList(_gun);
+        }
+
+        // 무기 매니저 초기화
+        weaponManager.InitializeWeapon();
     }
 
     private void Start()
@@ -350,6 +388,9 @@ public class PlayerController : MonoBehaviour
     // 땅에 닿을 때 착지 소리 나게 하는 애니메이션 이벤트
     private void OnLand(AnimationEvent animationEvent)
     {
+        if (_controller == null || LandingAudioClip == null)
+            return;
+
         if (animationEvent.animatorClipInfo.weight > 0.5f)
         {
             AudioSource.PlayClipAtPoint(LandingAudioClip, transform.TransformPoint(_controller.center), FootstepAudioVolume);
@@ -400,4 +441,40 @@ public class PlayerController : MonoBehaviour
         _input.swing = false;
         _input.stap = false;
     }
-}
+
+    public void ChangeToHouseowner()
+    {
+        /*
+         1. 쿼터뷰 카메라 삭제
+        2. Robber 모델 -> Houseowner 모델 변환
+        3. 
+         */
+        //Destroy(transform.GetChild(0).gameObject);
+        //GameObject houseownerModel = Instantiate(prefab, transform.position, transform.rotation, transform);
+        //houseownerModel.transform.SetSiblingIndex(0);
+
+        // 메시 전환 및 파괴
+        robberMesh.SetActive(false);
+        houseownerMesh.SetActive(true);
+        Destroy(transform.GetChild(0).gameObject);
+
+        // 집주인 애니메이션들로 교체
+        _animator.runtimeAnimatorController = houseownerAnimController; 
+        _animator.avatar = houseownerAvatar;
+
+        // 집주인으로 역할 지정
+        PlayerRole = Define.Role.Houseowner;
+
+        // 쿼터뷰 비활성화
+        quaterViewCamera.SetActive(false);
+
+        // 강도 스크립트 비활성화
+        gameObject.GetComponent<RobberController>().enabled = false;
+
+        // 플레이어 무기 다시 세팅
+        PlayerWeaponInit();
+
+        // 집주인 스크립트 활성화
+        gameObject.GetComponent<HouseownerController>().enabled = true;
+    }
+} 
