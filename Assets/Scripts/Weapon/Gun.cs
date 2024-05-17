@@ -39,7 +39,7 @@ public class Gun : Weapon
     [Tooltip("조준 중인지 여부")] [SerializeField] bool isAim = false;
     [Tooltip("마우스 조준 좌표")][SerializeField] Vector3 mouseWorldPosition;
 
-    HouseownerController houseownerController;
+    PlayerController playerController;
     PlayerInputs playerInputs;
     Animator animator;
     public RigBuilder rigBuilder; // IK 활성/비활성화를 조절하기 위해 접근
@@ -51,7 +51,7 @@ public class Gun : Weapon
     {
         originalRotation = transform.localEulerAngles;
 
-        houseownerController = base.Master.gameObject.GetComponent<HouseownerController>();
+        playerController = base.Master.gameObject.GetComponent<PlayerController>();
         playerInputs = base.Master.gameObject.GetComponent<PlayerInputs>();
         animator = base.Master.gameObject.GetComponent<Animator>();
         //rigBuilder = transform.root.GetChild(0).GetComponent<RigBuilder>();
@@ -103,8 +103,8 @@ public class Gun : Weapon
 
             // 조준 시점으로 카메라 변경
             aimVirtualCamera.gameObject.SetActive(true);
-            houseownerController.SetSensitivity(aimSensitivity);
-            houseownerController.SetRotateOnMove(false);
+            playerController.SetSensitivity(aimSensitivity);
+            playerController.SetRotateOnMove(false);
             animator.SetLayerWeight(1, Mathf.Lerp(animator.GetLayerWeight(1), 1f, Time.deltaTime * 10f));
             animator.SetBool("isAim", true);
 
@@ -126,8 +126,8 @@ public class Gun : Weapon
 
             // 원래 시점으로 카메라 변경
             aimVirtualCamera.gameObject.SetActive(false);
-            houseownerController.SetSensitivity(normalSensitivity);
-            houseownerController.SetRotateOnMove(true);
+            playerController.SetSensitivity(normalSensitivity);
+            playerController.SetRotateOnMove(true);
             animator.SetLayerWeight(1, Mathf.Lerp(animator.GetLayerWeight(1), 1f, Time.deltaTime * 10f));
         }
     }

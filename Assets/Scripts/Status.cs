@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class Status : MonoBehaviour
 {
-    public float Hp { get; private set; } = 100;    // 체력
-    public float Sp { get; private set; } = 100;    // 스테미나
-    public float MaxHp { get; private set; } = 100; // 최대 체력
-    public float MaxSp { get; private set; } = 100; // 최대 스테미
-    public float Defence { get; private set; } = 1; // 방어력
+    [SerializeField] public float Hp { get; private set; } = 100;    // 체력
+    [SerializeField] public float Sp { get; private set; } = 100;    // 스테미나
+    [SerializeField] public float MaxHp { get; private set; } = 100; // 최대 체력
+    [SerializeField] public float MaxSp { get; private set; } = 100; // 최대 스테미
+    [SerializeField] public float Defence { get; private set; } = 1; // 방어력
 
     /// <summary>
     /// 데미지 처리 함수
