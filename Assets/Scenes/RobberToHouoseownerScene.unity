@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028331, g: 0.2257133, b: 0.3069217, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -241,11 +241,11 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b3e0aac5a7001ab4f892a4c1c3d2a1cc,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 134867441}
+      addedObject: {fileID: 134867440}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b3e0aac5a7001ab4f892a4c1c3d2a1cc,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 134867440}
+      addedObject: {fileID: 134867444}
   m_SourcePrefab: {fileID: 100100000, guid: b3e0aac5a7001ab4f892a4c1c3d2a1cc, type: 3}
 --- !u!4 &134867438 stripped
 Transform:
@@ -280,7 +280,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.066698566, y: 0.3982369, z: 0.15192105}
   m_Center: {x: -0.000000060033024, y: 0.26676318, z: -0.00000053259936}
---- !u!114 &134867441
+--- !u!114 &134867444
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -289,9 +289,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 134867439}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8e70a5bbf8a77342b65cce61cfc7e6b, type: 3}
+  m_Script: {fileID: 11500000, guid: 55d80fad8438a724c8abfc367b81ebad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sliceMask:
+    serializedVersion: 2
+    m_Bits: 65536
+  cutForce: 250
 --- !u!1 &284586117
 GameObject:
   m_ObjectHideFlags: 0
@@ -421,6 +425,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da0730ca19690084da10118805308188, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _melee: {fileID: 134867444}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -914,6 +919,16 @@ PrefabInstance:
       propertyPath: aimVirtualCamera
       value: 
       objectReference: {fileID: 78459648}
+    - target: {fileID: 5388723043174600607, guid: 8917d7d0db3f5084eaa49f9f8904b80d,
+        type: 3}
+      propertyPath: m_Avatar
+      value: 
+      objectReference: {fileID: 9000000, guid: 43280fe8b84b32549953b9613a6fa99a, type: 2}
+    - target: {fileID: 5388723043174600607, guid: 8917d7d0db3f5084eaa49f9f8904b80d,
+        type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 3c01730be50b5ce44a9f96d8c1167a83, type: 2}
     - target: {fileID: 7393473463159989015, guid: 8917d7d0db3f5084eaa49f9f8904b80d,
         type: 3}
       propertyPath: m_Data.m_SourceObjects.m_Item0.transform
@@ -982,7 +997,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7698349402739088628, guid: 8917d7d0db3f5084eaa49f9f8904b80d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1151427312}
   m_SourcePrefab: {fileID: 100100000, guid: 8917d7d0db3f5084eaa49f9f8904b80d, type: 3}
 --- !u!1001 &735346958
 PrefabInstance:
@@ -1056,17 +1075,17 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Avatar
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 9000000, guid: 6184d9d3c0383d64da2237781045d714, type: 3}
     - target: {fileID: 5866666021909216657, guid: 6184d9d3c0383d64da2237781045d714,
         type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: 6184d9d3c0383d64da2237781045d714,
         type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 9100000, guid: a249c921ff839604d876eb6794465ad0, type: 2}
     - target: {fileID: 5866666021909216657, guid: 6184d9d3c0383d64da2237781045d714,
         type: 3}
       propertyPath: m_ApplyRootMotion
@@ -1083,7 +1102,11 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1523385110}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6184d9d3c0383d64da2237781045d714,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1659261945}
   m_SourcePrefab: {fileID: 100100000, guid: 6184d9d3c0383d64da2237781045d714, type: 3}
 --- !u!4 &735346959 stripped
 Transform:
@@ -2080,6 +2103,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fff0960ef4ea6e04eac66b4a7fd2189d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1151427312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 60766170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26e54e5a728a9234ab24fcf1460ed8a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1287200398
 GameObject:
   m_ObjectHideFlags: 0
@@ -2931,51 +2966,18 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 735346958}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1678296544
+--- !u!114 &1659261945
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4416926083396964105}
+  m_GameObject: {fileID: 81918314}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c59d15291eada8d44b34eb6dfedb8929, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MoveSpeed: 2
-  SprintSpeed: 5.335
-  RotationSmoothTime: 0.12
-  SpeedChangeRate: 10
-  Sensitivity: 1
-  LandingAudioClip: {fileID: 8300000, guid: ff697d3070687ce4583faa0561a145a2, type: 3}
-  FootstepAudioClips: []
-  FootstepAudioVolume: 0.5
-  JumpHeight: 1.2
-  Gravity: -15
-  JumpTimeout: 0.5
-  FallTimeout: 0.15
-  Grounded: 1
-  GroundedOffset: -0.14
-  GroundedRadius: -0.24
-  GroundLayers:
-    serializedVersion: 2
-    m_Bits: 1
-  CinemachineCameraTarget: {fileID: 1373616811}
-  TopClamp: 70
-  BottomClamp: -30
-  CameraAngleOverride: 0
-  LockCameraPosition: 0
-  weaponManager: {fileID: 0}
-  _leftItemHand: {fileID: 0}
-  _rightItemHand: {fileID: 0}
-  _melee: {fileID: 0}
-  _gun: {fileID: 0}
-  meleeWeapon: {fileID: 0}
-  gunWeapon: {fileID: 0}
-  robberMesh: {fileID: 81918314}
-  houseownerMesh: {fileID: 60766170}
-  quaterViewCamera: {fileID: 2070925443045833351}
 --- !u!1 &1806577761
 GameObject:
   m_ObjectHideFlags: 0
@@ -3904,12 +3906,11 @@ GameObject:
   - component: {fileID: 3893294199423423923}
   - component: {fileID: 4416926083396964099}
   - component: {fileID: 5379202576568155774}
-  - component: {fileID: 1678296544}
+  - component: {fileID: 5885216829486622203}
   - component: {fileID: 5885216829486622201}
   - component: {fileID: 135756641397003125}
   - component: {fileID: 4416926083396964101}
   - component: {fileID: 5885216829486622202}
-  - component: {fileID: 5885216829486622203}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -3969,6 +3970,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   switchDelay: 1
   weaponList: []
+  _leftItemHand: {fileID: 0}
+  _rightItemHand: {fileID: 0}
+  _melee: {fileID: 0}
+  _gun: {fileID: 0}
+  meleeWeapon: {fileID: 0}
+  gunWeapon: {fileID: 0}
 --- !u!114 &5885216829486622203
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3976,9 +3983,9 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4416926083396964105}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 26e54e5a728a9234ab24fcf1460ed8a2, type: 3}
+  m_Script: {fileID: 11500000, guid: 1132f8e9b1e3f244092fb4ae915a3b69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   MoveSpeed: 2
@@ -3986,7 +3993,7 @@ MonoBehaviour:
   RotationSmoothTime: 0.12
   SpeedChangeRate: 10
   Sensitivity: 1
-  LandingAudioClip: {fileID: 8300000, guid: ff697d3070687ce4583faa0561a145a2, type: 3}
+  LandingAudioClip: {fileID: 0}
   FootstepAudioClips: []
   FootstepAudioVolume: 0.5
   JumpHeight: 1.2
@@ -3999,21 +4006,13 @@ MonoBehaviour:
   GroundLayers:
     serializedVersion: 2
     m_Bits: 1
-  CinemachineCameraTarget: {fileID: 1373616811}
+  CinemachineCameraTarget: {fileID: 0}
   TopClamp: 70
   BottomClamp: -30
   CameraAngleOverride: 0
   LockCameraPosition: 0
+  _input: {fileID: 0}
   weaponManager: {fileID: 0}
-  _leftItemHand: {fileID: 0}
-  _rightItemHand: {fileID: 0}
-  _melee: {fileID: 0}
-  _gun: {fileID: 0}
-  meleeWeapon: {fileID: 0}
-  gunWeapon: {fileID: 0}
-  robberMesh: {fileID: 0}
-  houseownerMesh: {fileID: 0}
-  quaterViewCamera: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
