@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class Status : MonoBehaviour
 {
-    public float Hp { get; private set; } = 100;    // 체력
-    public float Sp { get; private set; } = 100;    // 스테미나
-    public float MaxHp { get; private set; } = 100; // 최대 체력
-    public float MaxSp { get; private set; } = 100; // 최대 스테미나
-    public float Defence { get; private set; } = 1; // 방어력
+    [SerializeField] public float Hp { get; private set; } = 100;    // 체력
+    [SerializeField] public float Sp { get; private set; } = 100;    // 스테미나
+    [SerializeField] public float MaxHp { get; private set; } = 100; // 최대 체력
+    [SerializeField] public float MaxSp { get; private set; } = 100; // 최대 스테미
+    [SerializeField] public float Defence { get; private set; } = 1; // 방어력
 
     /// <summary>
     /// 데미지 처리 함수
@@ -20,5 +20,59 @@ public class Status : MonoBehaviour
         Hp -= damage;
 
         Debug.Log(gameObject.name + "(이)가 " + damage + " 만큼 피해를 입었음!");
+    }
+
+    // 최대 체력의 0.2만큼 회복
+    public void Heal()
+    {
+        // 현재 체력이 최대 체력보다 작을 때만 회복 적용
+        if (Hp < MaxHp)
+        {
+            // 회복량
+            float healAmount = MaxHp * 0.2f;
+
+            // 회복량과 현재 체력과의 합이 최대 체력을 넘지 않도록 조절
+            float healedAmount = Mathf.Clamp(Hp + healAmount, 0, MaxHp) - Hp;
+
+            Debug.Log("이전 체력" + Hp);
+            // 체력 회복
+            Hp += healedAmount;
+            Debug.Log("체력을 " + healedAmount + "만큼 회복!");
+            Debug.Log("현재 체력: " + Hp);
+        }
+        else
+        {
+            Debug.Log("최대 체력. 회복할 필요 없음.");
+        }
+    }
+
+    // 최대 스테미나 전부 회복
+    public void SpUp()
+    {
+        // 현재 스테미나가 최대 스테미나보다 작을 때만 회복 적용
+        if (Sp < MaxSp)
+        {
+            // 회복량과 현재 스테미나와의 합이 최대 스테미나를 넘지 않도록 조절
+            float healedAmount = Mathf.Clamp(Sp + MaxSp, 0, MaxHp) - Sp;
+
+            Debug.Log("이전 스테미나" + Sp);
+            // 스테미나 회복
+            Sp += healedAmount;
+            Debug.Log("전부 회복! 현재 Sp: " + Sp);
+        }
+        else
+        {
+            Debug.Log("최대 Sp. 회복할 필요 없음.");
+        }
+    }
+
+    public void SpDown()
+    {
+
+    }
+
+    public void DefenceUp()
+    {
+
     }
 }
