@@ -183,12 +183,12 @@ public class WeaponManager : MonoBehaviour
         if (weaponList[newIndex].CompareTag("Melee"))
         {
             if (houseownerController != null)
-                houseownerController.ChangeIsHoldGun(false);
+                playerController.ChangeIsHoldGun(false);
         }
         else
         {
             if (houseownerController != null)
-                houseownerController.ChangeIsHoldGun(true);
+                playerController.ChangeIsHoldGun(true);
         }
 
         // 货肺款 公扁 劝己拳

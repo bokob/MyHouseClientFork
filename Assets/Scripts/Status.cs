@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class Status : MonoBehaviour
 {
-    [SerializeField] public float Hp { get; private set; } = 100;    // 체력
-    [SerializeField] public float Sp { get; private set; } = 100;    // 스테미나
-    [SerializeField] public float MaxHp { get; private set; } = 100; // 최대 체력
-    [SerializeField] public float MaxSp { get; private set; } = 100; // 최대 스테미
-    [SerializeField] public float Defence { get; private set; } = 1; // 방어력
+    public float Hp { get; set; } = 100;    // 체력
+    public float Sp { get; set; } = 100;    // 스테미나
+    public float MaxHp { get; private set; } = 100; // 최대 체력
+    public float MaxSp { get; private set; } = 100; // 최대 스테미
+    public float Defence { get; private set; } = 1; // 방어력
 
     /// <summary>
     /// 데미지 처리 함수
@@ -64,6 +64,18 @@ public class Status : MonoBehaviour
         {
             Debug.Log("최대 Sp. 회복할 필요 없음.");
         }
+    }
+
+    public void ChargeSp()
+    {
+        Sp += Time.deltaTime * 20;
+        Sp = Mathf.Clamp(Sp, 0, MaxSp);
+    }
+
+    public void DischargeSp()
+    {
+        Sp -= Time.deltaTime * 20;
+        Sp = Mathf.Clamp(Sp, 0, MaxSp);
     }
 
     public void SpDown()
