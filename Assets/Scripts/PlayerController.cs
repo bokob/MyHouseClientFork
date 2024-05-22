@@ -280,7 +280,7 @@ public class PlayerController : MonoBehaviour
     void JumpAndGravity()
     {
         // 땅에 닿고 스테미나가 0보다 커야 점프
-        if (Grounded && _status.Sp>0)
+        if (Grounded)
         {
             // reset the fall timeout timer
             _fallTimeoutDelta = FallTimeout;
@@ -297,6 +297,9 @@ public class PlayerController : MonoBehaviour
             {
                 _verticalVelocity = -2f;
             }
+
+            // 스테미나 없으면 점프 못하게 막음
+            if (_status.Sp <= 0) return;
 
             // Jump
             if (_input.jump && _jumpTimeoutDelta <= 0.0f)
