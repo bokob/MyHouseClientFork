@@ -78,9 +78,9 @@ public class Status : MonoBehaviour
         Sp = Mathf.Clamp(Sp, 0, MaxSp);
     }
 
-    public void SpDown()
+    public void JumpSpDown()
     {
-
+        Sp -= 3;
     }
 
     public void DefenceUp()

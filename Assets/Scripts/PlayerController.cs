@@ -190,6 +190,10 @@ public class PlayerController : MonoBehaviour
         // set target speed based on move speed, sprint speed and if sprint is pressed
         float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
+        // sp가 0이면 기본 이동속도
+        if (_status.Sp == 0)
+            targetSpeed = MoveSpeed;
+
         // 안달리면 스테미나 회복
         if(!_input.sprint)
             _status.ChargeSp();
@@ -275,7 +279,8 @@ public class PlayerController : MonoBehaviour
     // 점프
     void JumpAndGravity()
     {
-        if (Grounded)
+        // 땅에 닿고 스테미나가 0보다 커야 점프
+        if (Grounded && _status.Sp>0)
         {
             // reset the fall timeout timer
             _fallTimeoutDelta = FallTimeout;
@@ -304,6 +309,8 @@ public class PlayerController : MonoBehaviour
                 {
                     _animator.SetBool(_animIDJump, true);
                 }
+
+                _status.JumpSpDown();
             }
 
             // jump timeout
