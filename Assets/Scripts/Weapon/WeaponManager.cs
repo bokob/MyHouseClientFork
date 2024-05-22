@@ -194,4 +194,10 @@ public class WeaponManager : MonoBehaviour
         // 새로운 무기 활성화
         weaponList[newIndex].SetActive(true);
     }
+
+    // 현재 들고 있는 무기의 태그 구하기
+    public string GetCurrentWeaponTag()
+    {
+        return weaponList[index].tag;
+    }
 }
