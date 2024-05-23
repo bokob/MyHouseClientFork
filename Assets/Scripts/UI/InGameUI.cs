@@ -27,6 +27,9 @@ public class InGameUI : MonoBehaviour
     TextMeshProUGUI _currentBullet;
     TextMeshProUGUI _totalBullet;
 
+    // 조준선
+    GameObject _crossHair;
+
     void Start()
     {
         _player = GameObject.FindWithTag("Player");
@@ -44,6 +47,9 @@ public class InGameUI : MonoBehaviour
         _weaponIcon = transform.GetChild(3).GetChild(0).GetComponent<RawImage>();
         _currentBullet = transform.GetChild(3).GetChild(1).GetChild(0).GetComponent<TextMeshProUGUI>();
         _totalBullet = transform.GetChild(3).GetChild(1).GetChild(1).GetComponent<TextMeshProUGUI>();
+
+        // 조준선 UI
+        _crossHair = transform.GetChild(5).gameObject;
     }
 
     void Update()
@@ -80,6 +86,7 @@ public class InGameUI : MonoBehaviour
         {
             if(!_currentBullet.gameObject.activeSelf) _currentBullet.gameObject.SetActive(true);
             if(!_totalBullet.gameObject.activeSelf) _totalBullet.gameObject.SetActive(true);
+            if(!_crossHair.activeSelf) _crossHair.SetActive(true);
 
             DisplayWeaponIcon(1);
             DisplayCurrentBullet();
@@ -90,6 +97,7 @@ public class InGameUI : MonoBehaviour
             DisplayWeaponIcon(0);
             if (_currentBullet.gameObject.activeSelf) _currentBullet.gameObject.SetActive(false);
             if (_totalBullet.gameObject.activeSelf) _totalBullet.gameObject.SetActive(false);
+            if (_crossHair.activeSelf) _crossHair.SetActive(false);
         }
     }
 
