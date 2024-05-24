@@ -289,4 +289,14 @@ public class Gun : Weapon
         Fire();
         Realod();
     }
+
+    public int GetCurrentBullet()
+    {
+        return currentBulletCount;
+    }
+
+    public int GetTotalBullet()
+    {
+        return totalBulletCount;
+    }
 }

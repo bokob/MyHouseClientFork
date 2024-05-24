@@ -2,18 +2,18 @@ using System;
 using System.Collections;
 using System.Diagnostics.Tracing;
 using System.Linq;
+using System.Transactions;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Processors;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// 플레이어(집주인, 강도)가 공통적으로 상속받는 클래스
-/// </summary>
 public class PlayerController : MonoBehaviour
 {
     [Header("Player")]
+    public bool IsDead = false;
     public float MoveSpeed = 2.0f;      // 움직임 속도
     public float SprintSpeed = 5.335f;  // 달리기 속도
 
@@ -77,7 +77,7 @@ public class PlayerController : MonoBehaviour
     protected float _terminalVelocity = 53.0f;
     protected bool _rotateOnMove = true;
 
-    Status _status;
+    public Status _status;
 
     // timeout deltatime
     protected float _jumpTimeoutDelta;
@@ -122,13 +122,14 @@ public class PlayerController : MonoBehaviour
         // PlayerCameraRoot 설정
         CinemachineCameraTarget = transform.GetChild(2).gameObject;
         
-        gameObject.AddComponent<Status>();
         _status = gameObject.GetComponent<Status>();
         weaponManager = GetComponent<WeaponManager>();
     }
 
     private void Update()
     {
+        if (PlayerRole == Define.Role.None) return;
+
         JumpAndGravity();   // 점프
         GroundedCheck();    // 지면체크
         Move();             // 이동
@@ -140,6 +141,7 @@ public class PlayerController : MonoBehaviour
         CameraRotation();
     }
 
+    // 입력장치(키보드, 마우스 인식)
     protected bool IsCurrentDeviceMouse
     {
         get
@@ -188,6 +190,14 @@ public class PlayerController : MonoBehaviour
         // set target speed based on move speed, sprint speed and if sprint is pressed
         float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
+        // sp가 0이면 기본 이동속도
+        if (_status.Sp == 0)
+            targetSpeed = MoveSpeed;
+
+        // 안달리면 스테미나 회복
+        if(!_input.sprint)
+            _status.ChargeSp();
+
         // 움직임 없으면 0 벡터로 처리
         if (_input.move == Vector2.zero) targetSpeed = 0.0f;
 
@@ -198,8 +208,7 @@ public class PlayerController : MonoBehaviour
         float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
 
         // accelerate or decelerate to target speed
-        if (currentHorizontalSpeed < targetSpeed - speedOffset ||
-            currentHorizontalSpeed > targetSpeed + speedOffset)
+        if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
         {
             // creates curved result rather than a linear one giving a more organic speed change
             // note T in Lerp is clamped, so we don't need to clamp our speed
@@ -233,6 +242,11 @@ public class PlayerController : MonoBehaviour
             {
                 transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
+
+            // 달리고 있는 경우에 스테미나 감소
+            if (_input.sprint)
+                _status.DischargeSp();
+
         }
 
         Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
@@ -265,6 +279,7 @@ public class PlayerController : MonoBehaviour
     // 점프
     void JumpAndGravity()
     {
+        // 땅에 닿고 스테미나가 0보다 커야 점프
         if (Grounded)
         {
             // reset the fall timeout timer
@@ -283,6 +298,9 @@ public class PlayerController : MonoBehaviour
                 _verticalVelocity = -2f;
             }
 
+            // 스테미나 없으면 점프 못하게 막음
+            if (_status.Sp <= 0) return;
+
             // Jump
             if (_input.jump && _jumpTimeoutDelta <= 0.0f)
             {
@@ -294,6 +312,8 @@ public class PlayerController : MonoBehaviour
                 {
                     _animator.SetBool(_animIDJump, true);
                 }
+
+                _status.JumpSpDown();
             }
 
             // jump timeout
@@ -332,6 +352,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // 바닥에 닿는 범위 확인을 위한 Gizmo
     private void OnDrawGizmosSelected()
     {
         Color transparentGreen = new Color(0.0f, 1.0f, 0.0f, 0.35f);
@@ -344,14 +365,28 @@ public class PlayerController : MonoBehaviour
         Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
     }
 
+    // 사망
     public void Dead()
     {
-        if (_status.Hp <= 0 || Input.GetKeyDown(KeyCode.P))
+        if (PlayerRole != Define.Role.None && _status.Hp <= 0)
         {
             _animator.SetTrigger("setDie");
-            PlayerRole = Define.Role.None;
+            PlayerRole = Define.Role.None; // 시체
+            StartCoroutine(DeadSinkCoroutine());
         }
     }
+
+    IEnumerator DeadSinkCoroutine()
+    {
+        yield return new WaitForSeconds(3f);
+        while (transform.position.y > -1.5f)
+        {
+            transform.Translate(Vector3.down * 0.1f * Time.deltaTime);
+            yield return null;
+        }
+        Destroy(gameObject);
+    }
+
 
     /// <summary>
     /// 근접 공격: 좌클릭(휘두르기), 우클릭(찌르기)
@@ -449,5 +484,27 @@ public class PlayerController : MonoBehaviour
         // 애니메이터 속성 교체하고 껐다가 켜야 동작함
         _animator.enabled = false;
         _animator.enabled = true;
+    }
+
+    public void ChangeIsHoldGun(bool newIsHoldGun)
+    {
+        _animator.SetBool("isHoldGun", newIsHoldGun);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        // 자기 자신에게 닿은 경우 무시
+        if (other.transform.root.name == gameObject.name) return;
+        
+        // 태그가 무기 태그인 경우
+        if(other.tag == "Melee" || other.tag == "Gun")
+        {
+            // 데미지 적용
+            _status.TakedDamage(other.GetComponent<Weapon>().Attack);
+
+            Dead();
+
+            Debug.Log($"플레이어가 {other.transform.root.name}에게 공격 받음!");
+        }
     }
 } 

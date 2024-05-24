@@ -183,15 +183,21 @@ public class WeaponManager : MonoBehaviour
         if (weaponList[newIndex].CompareTag("Melee"))
         {
             if (houseownerController != null)
-                houseownerController.ChangeIsHoldGun(false);
+                playerController.ChangeIsHoldGun(false);
         }
         else
         {
             if (houseownerController != null)
-                houseownerController.ChangeIsHoldGun(true);
+                playerController.ChangeIsHoldGun(true);
         }
 
         // 새로운 무기 활성화
         weaponList[newIndex].SetActive(true);
+    }
+
+    // 현재 들고 있는 무기의 태그 구하기
+    public string GetCurrentWeaponTag()
+    {
+        return weaponList[index].tag;
     }
 }

@@ -16,7 +16,11 @@ public class Person : MonoBehaviour
 
     void Update()
     {
-        _melee.Use();
+        if(Input.GetKeyDown(KeyCode.Y)) 
+        {
+            _anim.SetTrigger("setAttack");
+            _melee.Use();
+        }
     }
 
     private void OnTriggerEnter(Collider other)
