@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Melee
   - Hand
+  - CinemachineTarget
+  - Gun
   layers:
   - Default
   - TransparentFX
@@ -14,18 +16,18 @@ TagManager:
   - Water
   - UI
   - Ground
+  - Item
+  - 
+  - FrozenChunks
   - 
   - 
   - 
   - 
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Cutable
+  - Breakable
+  - Destructible
   - 
   - 
   - 

@@ -6,6 +6,7 @@ public class Person : MonoBehaviour
 {
     Status _status;
     Animator _anim;
+    public Melee _melee;
     void Start()
     {
         gameObject.AddComponent<Status>();
@@ -15,7 +16,11 @@ public class Person : MonoBehaviour
 
     void Update()
     {
-
+        if(Input.GetKeyDown(KeyCode.Y)) 
+        {
+            _anim.SetTrigger("setAttack");
+            _melee.Use();
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -30,9 +35,11 @@ public class Person : MonoBehaviour
         if(other.tag == "Melee")
         {
             _status.TakedDamage(other.GetComponent<Weapon>().Attack);
-            
-            if(_status.Hp <= 0)
-                _anim.SetBool("isDead", true);
+
+            if (_status.Hp <= 0)
+            {
+                _anim.SetTrigger("setDie");
+            }
         }
     }
 }

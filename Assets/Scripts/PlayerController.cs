@@ -1,25 +1,26 @@
 using System;
 using System.Collections;
+using System.Diagnostics.Tracing;
+using System.Linq;
+using System.Transactions;
+using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Processors;
+using UnityEngine.SceneManagement;
 
-/// <summary>
-/// 플레이어(집주인, 강도)가 공통적으로 상속받는 클래스
-/// </summary>
 public class PlayerController : MonoBehaviour
 {
     [Header("Player")]
-    // 움직임 속도
-    public float MoveSpeed = 2.0f;
-    // 달리기 속도
-    public float SprintSpeed = 5.335f;
+    public bool IsDead = false;
+    public float MoveSpeed = 2.0f;      // 움직임 속도
+    public float SprintSpeed = 5.335f;  // 달리기 속도
 
     [Range(0.0f, 0.3f)]
-    // 움직임 방향 전환
-    public float RotationSmoothTime = 0.12f;
+    public float RotationSmoothTime = 0.12f; // 움직임 방향 전환
 
-    // 속도 가속
-    public float SpeedChangeRate = 10.0f;
+    public float SpeedChangeRate = 10.0f; // 속도 가속
 
     public float Sensitivity = 1f;
 
@@ -28,31 +29,17 @@ public class PlayerController : MonoBehaviour
     [Range(0, 1)] public float FootstepAudioVolume = 0.5f;
 
     [Space(10)]
-    // 점프 높이
-    public float JumpHeight = 1.2f;
-
-    [Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
-    public float Gravity = -15.0f;
+    public float JumpHeight = 1.2f; // 점프 높이
+    public float Gravity = -15.0f; // 유니티 엔진에서 기본 중력은 -9.81f
 
     [Space(10)]
-    [Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
-    // 점프 쿨타임
-    public float JumpTimeout = 0.50f;
+    public float JumpTimeout = 0.50f; // 점프 쿨타임
+    public float FallTimeout = 0.15f; // 떨어지는 상태로 진입하는데 걸리는 시간
 
-    [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
-    public float FallTimeout = 0.15f;
-
-    // 지면에 닿았는지 여부
-    public bool Grounded = true;
-
-    [Tooltip("Useful for rough ground")]
-    public float GroundedOffset = -0.14f;
-
-    [Tooltip("The radius of the grounded check. Should match the radius of the CharacterController")]
-    public float GroundedRadius = 0.28f;
-
-    [Tooltip("What layers the character uses as ground")]
-    public LayerMask GroundLayers;
+    public bool Grounded = true; // 지면에 닿았는지 여부
+    public float GroundedOffset = -0.14f; // 지면 거칠기
+    public float GroundedRadius = 0.28f; // 캐릭터 컨트롤러에서 구체 형성해서 지면체크할 때, 구체 반지름
+    public LayerMask GroundLayers; // 땅에 해당하는 레이어 마스크
 
     [Header("Cinemachine")]
     [Tooltip("The follow target set in the Cinemachine Virtual Camera that the camera will follow")]
@@ -70,42 +57,91 @@ public class PlayerController : MonoBehaviour
     [Tooltip("For locking the camera position on all axis")]
     public bool LockCameraPosition = false;
 
+    protected GameObject _mainCamera;
     // cinemachine
     protected float _cinemachineTargetYaw;
     protected float _cinemachineTargetPitch;
 
+    protected CharacterController _controller;
+    public PlayerInputs _input;
+
     // player
+#if ENABLE_INPUT_SYSTEM
+    protected PlayerInput _playerInput;
+#endif
     protected float _speed;
     protected float _animationBlend;
     protected float _targetRotation = 0.0f;
     protected float _rotationVelocity;
     protected float _verticalVelocity;
     protected float _terminalVelocity = 53.0f;
+    protected bool _rotateOnMove = true;
+
+    public Status _status;
 
     // timeout deltatime
     protected float _jumpTimeoutDelta;
     protected float _fallTimeoutDelta;
 
+    protected Animator _animator;
     // animation IDs
     protected int _animIDSpeed;
     protected int _animIDGrounded;
     protected int _animIDJump;
     protected int _animIDFreeFall;
     protected int _animIDMotionSpeed;
-
-#if ENABLE_INPUT_SYSTEM 
-    protected PlayerInput _playerInput;
-#endif
-    protected Animator _animator;
-    protected CharacterController _controller;
-    protected PlayerInputs _input;
-    protected GameObject _mainCamera;
-    protected bool _rotateOnMove = true;
+    protected bool _hasAnimator;
 
     protected const float _threshold = 0.01f;
 
-    protected bool _hasAnimator;
+    [Header("무기 관련")]
+    [SerializeField] protected WeaponManager weaponManager;
 
+    [Header("공격 관련")]
+    bool isSwingReady;  // 공격 준비
+    float swingDelay;   // 공격 딜레이
+    bool isStabReady;  // 공격 준비
+    float stabDelay;   // 공격 딜레이
+
+    [SerializeField] public Define.Role PlayerRole { get; set; } = Define.Role.None;
+
+    private void Awake()
+    {
+        PlayerInit();
+        // 플레이어 무기 세팅
+        weaponManager.PlayerWeaponInit();
+    }
+
+    void PlayerInit()
+    {
+        // get a reference to our main camera
+        if (_mainCamera == null)
+        {
+            _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+        }
+        // PlayerCameraRoot 설정
+        CinemachineCameraTarget = transform.GetChild(2).gameObject;
+        
+        _status = gameObject.GetComponent<Status>();
+        weaponManager = GetComponent<WeaponManager>();
+    }
+
+    private void Update()
+    {
+        if (PlayerRole == Define.Role.None) return;
+
+        JumpAndGravity();   // 점프
+        GroundedCheck();    // 지면체크
+        Move();             // 이동
+        MeleeAttack();      // 근접 공격
+    }
+
+    private void LateUpdate()
+    {
+        CameraRotation();
+    }
+
+    // 입력장치(키보드, 마우스 인식)
     protected bool IsCurrentDeviceMouse
     {
         get
@@ -118,16 +154,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void Awake()
-    {
-        // get a reference to our main camera
-        if (_mainCamera == null)
-        {
-            _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-        }
-    }
-
-    private void Start()
+    void Start()
     {
         _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
 
@@ -145,10 +172,11 @@ public class PlayerController : MonoBehaviour
         // reset our timeouts on start
         _jumpTimeoutDelta = JumpTimeout;
         _fallTimeoutDelta = FallTimeout;
+        
     }
 
     // 애니메이션 파라미터 해시로 관리
-    private void AssignAnimationIDs()
+    void AssignAnimationIDs()
     {
         _animIDSpeed = Animator.StringToHash("Speed");
         _animIDGrounded = Animator.StringToHash("Grounded");
@@ -157,11 +185,18 @@ public class PlayerController : MonoBehaviour
         _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
     }
 
-    // 이동
-    protected void Move()
+    void Move()
     {
         // set target speed based on move speed, sprint speed and if sprint is pressed
         float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
+
+        // sp가 0이면 기본 이동속도
+        if (_status.Sp == 0)
+            targetSpeed = MoveSpeed;
+
+        // 안달리면 스테미나 회복
+        if(!_input.sprint)
+            _status.ChargeSp();
 
         // 움직임 없으면 0 벡터로 처리
         if (_input.move == Vector2.zero) targetSpeed = 0.0f;
@@ -173,8 +208,7 @@ public class PlayerController : MonoBehaviour
         float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
 
         // accelerate or decelerate to target speed
-        if (currentHorizontalSpeed < targetSpeed - speedOffset ||
-            currentHorizontalSpeed > targetSpeed + speedOffset)
+        if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
         {
             // creates curved result rather than a linear one giving a more organic speed change
             // note T in Lerp is clamped, so we don't need to clamp our speed
@@ -208,6 +242,11 @@ public class PlayerController : MonoBehaviour
             {
                 transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
+
+            // 달리고 있는 경우에 스테미나 감소
+            if (_input.sprint)
+                _status.DischargeSp();
+
         }
 
         Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
@@ -221,10 +260,10 @@ public class PlayerController : MonoBehaviour
             _animator.SetFloat(_animIDSpeed, _animationBlend);
             _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
         }
-    }
+    }// 이동
 
     // 지면 체크
-    protected void GroundedCheck()
+    void GroundedCheck()
     {
         // set sphere position, with offset
         Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
@@ -237,10 +276,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-
     // 점프
-    protected void JumpAndGravity()
+    void JumpAndGravity()
     {
+        // 땅에 닿고 스테미나가 0보다 커야 점프
         if (Grounded)
         {
             // reset the fall timeout timer
@@ -259,6 +298,9 @@ public class PlayerController : MonoBehaviour
                 _verticalVelocity = -2f;
             }
 
+            // 스테미나 없으면 점프 못하게 막음
+            if (_status.Sp <= 0) return;
+
             // Jump
             if (_input.jump && _jumpTimeoutDelta <= 0.0f)
             {
@@ -270,6 +312,8 @@ public class PlayerController : MonoBehaviour
                 {
                     _animator.SetBool(_animIDJump, true);
                 }
+
+                _status.JumpSpDown();
             }
 
             // jump timeout
@@ -308,6 +352,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // 바닥에 닿는 범위 확인을 위한 Gizmo
     private void OnDrawGizmosSelected()
     {
         Color transparentGreen = new Color(0.0f, 1.0f, 0.0f, 0.35f);
@@ -320,9 +365,68 @@ public class PlayerController : MonoBehaviour
         Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
     }
 
+    // 사망
+    public void Dead()
+    {
+        if (PlayerRole != Define.Role.None && _status.Hp <= 0)
+        {
+            _animator.SetTrigger("setDie");
+            PlayerRole = Define.Role.None; // 시체
+            StartCoroutine(DeadSinkCoroutine());
+        }
+    }
+
+    IEnumerator DeadSinkCoroutine()
+    {
+        yield return new WaitForSeconds(3f);
+        while (transform.position.y > -1.5f)
+        {
+            transform.Translate(Vector3.down * 0.1f * Time.deltaTime);
+            yield return null;
+        }
+        Destroy(gameObject);
+    }
+
+
+    /// <summary>
+    /// 근접 공격: 좌클릭(휘두르기), 우클릭(찌르기)
+    /// </summary>
+    public void MeleeAttack()
+    {
+        // 무기 오브젝트가 없거나, 무기가 비활성화 되어 있거나, 무기가 없으면 공격 취소
+        if (weaponManager._melee == null || weaponManager._melee.activeSelf == false || weaponManager.meleeWeapon == null)
+            return;
+
+        swingDelay += Time.deltaTime;
+        stabDelay += Time.deltaTime;
+        isSwingReady = weaponManager.meleeWeapon.Rate < swingDelay; // 공격속도가 공격 딜레이보다 작으면 공격준비 완료
+        isStabReady = weaponManager.meleeWeapon.Rate < stabDelay;
+
+        if (_input.swing && isSwingReady && Grounded) // 휘두르기
+        {
+            Debug.Log("휘두르기");
+            weaponManager.meleeWeapon.Use();
+            _animator.SetTrigger("setSwing");
+            swingDelay = 0;
+        }
+        else if (_input.stap && isStabReady && Grounded) // 찌르기
+        {
+            Debug.Log("찌르기");
+            weaponManager.meleeWeapon.Use();
+            _animator.SetTrigger("setStab");
+            stabDelay = 0;
+            
+        }
+        _input.swing = false;
+        _input.stap = false;
+    }
+
     // 땅에 닿을 때 착지 소리 나게 하는 애니메이션 이벤트
     private void OnLand(AnimationEvent animationEvent)
     {
+        if (_controller == null || LandingAudioClip == null)
+            return;
+
         if (animationEvent.animatorClipInfo.weight > 0.5f)
         {
             AudioSource.PlayClipAtPoint(LandingAudioClip, transform.TransformPoint(_controller.center), FootstepAudioVolume);
@@ -330,169 +434,77 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    //#region 구버전
-    //protected string _nickname;  // 닉네임
-    //protected Define.Role _role; // 플레이어 역할
+    // 카메라 각도 제한
+    private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
+    {
+        if (lfAngle < -360f) lfAngle += 360f;
+        if (lfAngle > 360f) lfAngle -= 360f;
+        return Mathf.Clamp(lfAngle, lfMin, lfMax);
+    }
 
-    //[Header("컴포넌트")]
-    //protected Rigidbody rb;
-    //protected Animator anim;
-    //protected Camera _thirdCamera;
+    // 카메라 회전
+    private void CameraRotation()
+    {
+        if (PlayerRole == Define.Role.Robber) return;
 
-    //[Space(10)]
+        // if there is an input and camera position is not fixed
+        if (_input.look.sqrMagnitude >= _threshold && !LockCameraPosition)
+        {
+            //Don't multiply mouse input by Time.deltaTime;
+            float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
 
-    //[Header ("이동 관련")]
-    //protected Vector3 dir = Vector3.zero;
-    //protected bool _isGround;
-    //protected float _moveSpeed;
-    //protected float _walkSpeed = 5f;
-    //protected float _runSpeed = 15f;
-    //protected float _jumpHeight = 4f;         // 점프 파워
-    //bool isPressedRunKey;                     // 달리는 상태 판별
+            // 정조준 할 때 천천히 돌아가야 하니까 Sensitivity를 넣어준다.
+            _cinemachineTargetYaw += _input.look.x * deltaTimeMultiplier * Sensitivity;
+            _cinemachineTargetPitch += _input.look.y * deltaTimeMultiplier * Sensitivity;
+        }
 
-    //[Space(10)]
+        // clamp our rotations so our values are limited 360 degrees
+        _cinemachineTargetYaw = ClampAngle(_cinemachineTargetYaw, float.MinValue, float.MaxValue);
+        _cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, BottomClamp, TopClamp);
 
-    //[Header ("상태 관련")]
-    //protected bool _isDead;                    // 죽었는지 판별
-    //protected Status _status;
+        // 시네마신 카메라가 목표를 따라감
+        CinemachineCameraTarget.transform.rotation = Quaternion.Euler(_cinemachineTargetPitch + CameraAngleOverride, _cinemachineTargetYaw, 0.0f);
+    }
 
-    //[Space(10)]
+    public void SetSensitivity(float newSensitivity)
+    {
+        Sensitivity = newSensitivity;
+    }
 
-    //[Header ("공격 관련")]
-    //bool swingKeyDown;  // 마우스 왼쪽 키 눌렸는지
-    //bool isSwingReady;  // 공격 준비
-    //float swingDelay;   // 공격 딜레이
-    //bool stabKeyDown;  // 마우스 왼쪽 키 눌렸는지
-    //bool isStabReady;  // 공격 준비
-    //float stabDelay;   // 공격 딜레이
-    //GameObject _rightHand;
-    //public Melee meleeWeapon; // 근접 무기
+    public void SetRotateOnMove(bool newRotateOnMove)
+    {
+        _rotateOnMove = newRotateOnMove;
+    }
 
-    //protected void Awake()
-    //{
-    //    rb = GetComponent<Rigidbody>();
-    //    anim = GetComponentInChildren<Animator>();
+    public void SetRoleAnimator(RuntimeAnimatorController animController, Avatar avatar)
+    {
+        _animator.runtimeAnimatorController = animController;
+        _animator.avatar = avatar;
 
-    //    //_thirdCamera = GameObject.Find("ThirdCamera").GetComponent<Camera>();
+        // 애니메이터 속성 교체하고 껐다가 켜야 동작함
+        _animator.enabled = false;
+        _animator.enabled = true;
+    }
 
-    //    gameObject.AddComponent<Status>();
-    //    _status = gameObject.GetComponent<Status>();
-    //}
+    public void ChangeIsHoldGun(bool newIsHoldGun)
+    {
+        _animator.SetBool("isHoldGun", newIsHoldGun);
+    }
 
-    //protected void MoveKeyInput()
-    //{
-    //    dir.x = Input.GetAxis("Horizontal");
-    //    dir.z = Input.GetAxis("Vertical");
-    //    dir = dir.normalized;
-    //}
+    private void OnTriggerEnter(Collider other)
+    {
+        // 자기 자신에게 닿은 경우 무시
+        if (other.transform.root.name == gameObject.name) return;
+        
+        // 태그가 무기 태그인 경우
+        if(other.tag == "Melee" || other.tag == "Gun")
+        {
+            // 데미지 적용
+            _status.TakedDamage(other.GetComponent<Weapon>().Attack);
 
-    ///// <summary>
-    ///// 기본 이동, 걷는 애니메이션 재생
-    ///// </summary>
-    //protected virtual void Walk()
-    //{
-    //    _moveSpeed = _walkSpeed;
-    //    if (dir != Vector3.zero)
-    //    {
-    //        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 0.2f);
-    //        transform.position += dir * _moveSpeed * Time.deltaTime;
-    //    }
-    //    anim.SetBool("isWalk", dir != Vector3.zero);
-    //}
+            Dead();
 
-    ///// <summary>
-    ///// 달리기, 이동 속도를 변화시키고 달리는 애니메이션 재생
-    ///// </summary>
-    //protected virtual void Run() // 달리는 속도로 만들기
-    //{
-    //    isPressedRunKey = Input.GetKey(KeyCode.LeftShift);
-    //    if (isPressedRunKey)
-    //    {
-    //        _moveSpeed = _runSpeed;
-    //    }
-    //    else
-    //        _moveSpeed = _walkSpeed;
-    //    anim.SetBool("isRun", isPressedRunKey && dir != Vector3.zero);
-    //}
-
-    ///// <summary>
-    ///// Ground인지 판단
-    ///// </summary>
-    //protected void IsGround()
-    //{
-    //    Debug.DrawRay(transform.position + (Vector3.up * 0.2f), Vector3.down, Color.red);
-
-    //    RaycastHit hit;
-    //    int layerMask = 1 << LayerMask.NameToLayer("Ground");
-    //    if (Physics.Raycast(transform.position + (Vector3.up * 0.2f), Vector3.down, out hit, 0.3f, layerMask))
-    //        _isGround = true;
-    //    else
-    //        _isGround = false;
-    //}
-
-    ///// <summary>
-    ///// 점프
-    ///// </summary>
-    //protected void Jump()
-    //{
-    //    IsGround();
-    //    if (Input.GetKeyDown(KeyCode.Space) && _isGround)
-    //    {
-    //        Vector3 jumpPower = Vector3.up * _jumpHeight;
-    //        rb.AddForce(jumpPower, ForceMode.VelocityChange);
-    //        anim.SetTrigger("setJump");
-    //    }
-    //}
-
-    ///// <summary>
-    ///// hp가 0이되면 사망
-    ///// </summary>
-    //protected void Dead()
-    //{
-    //    if (_status.Hp <= 0 || Input.GetKeyDown(KeyCode.P))
-    //    {
-    //        anim.SetTrigger("setDie");
-    //        _isDead = true;
-    //    }
-    //}
-
-
-    ///// <summary>
-    ///// 강도의 근접 공격: 좌클릭(휘두르기), 우클릭(찌르기)
-    ///// </summary>
-    //protected void MeleeAttack()
-    //{
-    //    swingKeyDown = Input.GetMouseButtonDown(0);
-    //    stabKeyDown = Input.GetMouseButtonDown(1);
-
-    //    if (meleeWeapon == null)
-    //    {
-    //        Debug.Log("현재 장착된 무기가 없음");
-    //        return;
-    //    }
-
-    //    swingDelay += Time.deltaTime;
-    //    stabDelay += Time.deltaTime;
-    //    isSwingReady = meleeWeapon.Rate < swingDelay; // 공격속도가 공격 딜레이보다 작으면 공격준비 완료
-    //    isStabReady = meleeWeapon.Rate < stabDelay;
-
-    //    if (swingKeyDown && isSwingReady && _isGround) // 휘두르기
-    //    {
-    //        Debug.Log("시작");
-    //        meleeWeapon.Use();
-    //        anim.SetTrigger("setSwing");
-    //        swingDelay = 0;
-    //        swingKeyDown = false;
-    //    }
-    //    else if (stabKeyDown && isStabReady && _isGround) // 찌르기
-    //    {
-    //        Debug.Log("시작");
-    //        meleeWeapon.Use();
-    //        anim.SetTrigger("setStab");
-    //        stabDelay = 0;
-    //        stabKeyDown = false;
-    //    }
-    //}
-    //#endregion
-
-}
+            Debug.Log($"플레이어가 {other.transform.root.name}에게 공격 받음!");
+        }
+    }
+} 
