@@ -28,4 +28,13 @@ public class Define
         Energy,
         Weapon,
     }
+
+    public enum MonsterState
+    {
+        Idle,
+        Chase,
+        Attack,
+        Patrol,
+        Killed
+    }
 }
