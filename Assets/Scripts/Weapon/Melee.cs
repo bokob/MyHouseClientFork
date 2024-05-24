@@ -38,7 +38,7 @@ public class Melee : Weapon
     }
 
     /// <summary>
-    /// Use() 실행하면서 Attack() 코루틴 같이 실행된다.
+    /// Use() 실행하면서 MeleeAttackOn() 코루틴 같이 실행된다.
     /// </summary>
     public override void Use()
     {
@@ -51,14 +51,14 @@ public class Melee : Weapon
     /// </summary>
     IEnumerator MeleeAttackOn()
     {
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.5f);
         meleeArea.enabled = true;
         trailEffet.enabled = true;
 
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(0.5f);
         meleeArea.enabled = false;
 
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(0.5f);
         trailEffet.enabled = false;
     }
 
@@ -73,7 +73,7 @@ public class Melee : Weapon
     {
         Debug.Log("관통");
     }
-    private void OnTriggerExit(Collider other)
+    private void OnTriggerExit(Collider other) // 관통 다 되면 레이어에 따라 절단
     {
         // 충돌 지점의 방향을 자르는 방향으로 설정
         exitPoint = other.ClosestPoint(transform.position);

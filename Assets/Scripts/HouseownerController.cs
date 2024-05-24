@@ -1,4 +1,4 @@
-﻿ using UnityEngine;
+using UnityEngine;
 #if ENABLE_INPUT_SYSTEM 
 using UnityEngine.InputSystem;
 using static UnityEngine.UIElements.UxmlAttributeDescription;
@@ -28,6 +28,9 @@ public class HouseownerController : MonoBehaviour
     }
     private void Update()
     {
+        // 시체면 가만히 있게 하기
+        if (playerController.PlayerRole == Define.Role.None) return;
+
         // 총 관련해서 행동 안하고 있을 때만 무기 바꾸기
         if (!playerController._input.aim && !playerController._input.reload)
             weaponManager.HandleWeaponSwitching();
@@ -46,8 +49,14 @@ public class HouseownerController : MonoBehaviour
     {
         playerController.PlayerRole = Define.Role.Houseowner;
 
-        RuntimeAnimatorController houseAnimController = gameObject.GetComponent<Animator>().runtimeAnimatorController;
-        Avatar houseAvatar = gameObject.GetComponent<Animator>().avatar;
+        Animator houseownerAnimator = gameObject.GetComponent<Animator>();
+        RuntimeAnimatorController houseAnimController = houseownerAnimator.runtimeAnimatorController;
+        Avatar houseAvatar = houseownerAnimator.avatar;
+        
+        // Player 객체에도 같은 애니메이터가 존재하므로 꼬이게 된다. 따라서 Houseowner의 애니메이터를 비워준다.
+        houseownerAnimator.runtimeAnimatorController = null;
+        houseownerAnimator.avatar = null;
+
         playerController.SetRoleAnimator(houseAnimController, houseAvatar);
 
         CameraInit();
@@ -65,10 +74,5 @@ public class HouseownerController : MonoBehaviour
         quaterFollowCamera.SetActive(false);
         thirdFollowCamera.SetActive(true);
         aimCamera.SetActive(true);
-    }
-
-    public void ChangeIsHoldGun(bool newIsHoldGun)
-    {
-        //base._animator.SetBool("isHoldGun", newIsHoldGun);
     }
 }

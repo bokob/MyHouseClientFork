@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/MultiTestScene.unity
     guid: 01c985538fa5e664a9f45f0b05f1dcc3
+  - enabled: 1
+    path: Assets/Scenes/ChatScene.unity
+    guid: 389871b27ec7022409efb0fccca11510
   m_configObjects: {}

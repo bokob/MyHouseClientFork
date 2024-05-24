@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
@@ -38,6 +38,8 @@ public class Gun : Weapon
     [Tooltip("사격 중인지 여부")] [SerializeField] bool isShoot = false;
     [Tooltip("조준 중인지 여부")] [SerializeField] bool isAim = false;
     [Tooltip("마우스 조준 좌표")][SerializeField] Vector3 mouseWorldPosition;
+
+    public BloodEffect blood;
 
     PlayerController playerController;
     PlayerInputs playerInputs;
@@ -155,6 +157,15 @@ public class Gun : Weapon
         }
     }
 
+    // 맞았을 때 효과
+    void HitEffect()
+    {
+        if (blood != null)
+        {
+            blood.GetHit();
+        }
+    }
+
     // 사격
     void Shoot()
     {
@@ -164,8 +175,10 @@ public class Gun : Weapon
             // 무언가 맞았으면
             if (hitTransform.GetComponent<BulletTarget>() != null)
             {
-                GameObject Effect = Instantiate(vfxHitGreen, mouseWorldPosition, Quaternion.identity);
-                Destroy(Effect, 0.5f);
+                GameObject GreenEffect = Instantiate(vfxHitGreen, mouseWorldPosition, Quaternion.identity);
+                Destroy(GreenEffect, 0.5f);
+
+                HitEffect();
             }
             else
             {
@@ -275,5 +288,15 @@ public class Gun : Weapon
         Aim();
         Fire();
         Realod();
+    }
+
+    public int GetCurrentBullet()
+    {
+        return currentBulletCount;
+    }
+
+    public int GetTotalBullet()
+    {
+        return totalBulletCount;
     }
 }
