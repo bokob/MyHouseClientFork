@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(FieldOfView))]
+[CustomEditor(typeof(Enemy_))]
 public class FieldOfViewEditor : Editor
 {
-    private void OnSceneGUI()
+    void OnSceneGUI()
     {
-        FieldOfView fov = (FieldOfView)target;
+        Enemy_ fov = (Enemy_)target;
         Handles.color = Color.white;
         Handles.DrawWireArc(fov.transform.position, Vector3.up, Vector3.forward, 360, fov.radius);
 
@@ -23,11 +23,11 @@ public class FieldOfViewEditor : Editor
         if (fov.canSeePlayer)
         {
             Handles.color = Color.green;
-            Handles.DrawLine(fov.transform.position, fov.playerRef.transform.position);
+            Handles.DrawLine(fov.transform.position, fov.target.position);
         }
     }
 
-    private Vector3 DirectionFromAngle(float eulerY, float angleInDegrees)
+    Vector3 DirectionFromAngle(float eulerY, float angleInDegrees)
     {
         angleInDegrees += eulerY;
 
