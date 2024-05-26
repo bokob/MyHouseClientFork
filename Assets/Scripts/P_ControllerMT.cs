@@ -33,6 +33,7 @@ public class P_ControllerMT : NetworkBehaviour
         _controller = GetComponent<CharacterController>();
         _input = GetComponent<PlayerInputs>();
         _playerInput = GetComponent<PlayerInput>();
+        SoundManager.Soundinstance.PlayBGM(0);
     }
 
     // Update is called once per frame

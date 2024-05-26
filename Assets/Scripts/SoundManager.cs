@@ -4,15 +4,44 @@ using UnityEngine;
 
 public class SoundManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public static SoundManager Soundinstance = null;
+    public AudioSource bgmSource;
+    public AudioSource sfxSource;
+    public AudioClip[] bgmClips;
+    public AudioClip[] sfxClips;
+
+    private void Awake() {
+        if(Soundinstance == null)
+        {
+            Soundinstance = this;
+        }
+        else if (Soundinstance != this)
+        {
+            Destroy(gameObject);
+        }
+        DontDestroyOnLoad(gameObject);
+    }
+    public void PlayBGM(int index)
     {
-        
+        if (index < bgmClips.Length)
+        {
+            bgmSource.clip = bgmClips[index];
+            bgmSource.Play();
+            bgmSource.loop = true;
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    public void PlaySFX(int index)
     {
-        
+        if (index < sfxClips.Length)
+        {
+            sfxSource.PlayOneShot(sfxClips[index]);
+        }
+    }
+
+    public void SetVolume(float volume)
+    {
+        bgmSource.volume = volume;
+        sfxSource.volume = volume;
     }
 }
