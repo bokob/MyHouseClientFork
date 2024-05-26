@@ -29,12 +29,17 @@ public class Enemy_ : MonoBehaviour
 
     public Define.MonsterState _state = Define.MonsterState.Idle;
 
+    public FieldOfView fieldOfView;
+
     void Start()
     {
         Debug.Log("시작");
         _anim = GetComponent<Animator>();
         nmAgent = GetComponent<NavMeshAgent>();
         centerPoint = transform;
+        fieldOfView = GetComponent<FieldOfView>();
+
+
     }
 
     bool RandomPoint(Vector3 center, float range, out Vector3 result)
@@ -80,8 +85,11 @@ public class Enemy_ : MonoBehaviour
 
         //float distance = Vector3.Distance(transform.position, target.transform.position);
         //if (distance < )
-
-        ChangeState(Define.MonsterState.Patrol);
+        
+        if(fieldOfView.canSeePlayer)
+            ChangeState(Define.MonsterState.Chase);
+        else
+            ChangeState(Define.MonsterState.Patrol);
     }
     IEnumerator Patrol() // 순찰
     {
