@@ -18,26 +18,11 @@ public class SkyOverTime : MonoBehaviour
             Renderer objectRenderer = GetComponent<Renderer>();
             material = objectRenderer.material;
         }
+        Season();
     }
     
     void Update()
     {
-        // Calling the current month(int)
-        dateMonth = DateTime.Now.Month;
-
-        if (dateMonth > 1 && dateMonth < 5 || dateMonth > 7 && dateMonth < 11)
-        {
-            season = "springNfall";
-        }
-        else if (dateMonth > 4 && dateMonth < 8)
-        {
-            season = "summer";
-        }
-        else
-        {
-            season = "winter";
-        }
-
         // Calling the current hour(int)
         dateHour = DateTime.Now.Hour;
 
@@ -113,5 +98,24 @@ public class SkyOverTime : MonoBehaviour
         }
     
         material.SetTextureOffset("_MainTex", new Vector2(offsetX, 0.0f));
+    }
+
+    void Season()
+    {
+        // Calling the current month(int)
+        dateMonth = DateTime.Now.Month;
+
+        if (dateMonth > 1 && dateMonth < 5 || dateMonth > 7 && dateMonth < 11)
+        {
+            season = "springNfall";
+        }
+        else if (dateMonth > 4 && dateMonth < 8)
+        {
+            season = "summer";
+        }
+        else
+        {
+            season = "winter";
+        }
     }
 }
