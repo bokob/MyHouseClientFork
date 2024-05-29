@@ -5199,7 +5199,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sliceMask:
     serializedVersion: 2
-    m_Bits: 65536
+    m_Bits: 8192
   cutForce: 250
 --- !u!65 &1767700901
 BoxCollider:
