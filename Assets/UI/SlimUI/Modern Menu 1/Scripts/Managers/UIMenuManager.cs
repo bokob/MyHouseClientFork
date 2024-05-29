@@ -30,10 +30,6 @@ namespace SlimUI.ModernMenu{
         [Header("PANELS")]
         [Tooltip("The UI Panel parenting all sub menus")]
         public GameObject mainCanvas;
-		[Tooltip("The UI Panel parenting all option menus")]
-        public GameObject OptionCanvas;
-		[Tooltip("The UI Panel that holds Game Rooms")]
-        public GameObject LobbyCanvas;
         [Tooltip("The UI Panel that holds the CONTROLS window tab")]
         public GameObject PanelControls;
         [Tooltip("The UI Panel that holds the VIDEO window tab")]
@@ -66,14 +62,6 @@ namespace SlimUI.ModernMenu{
         public GameObject lineCombat;
         [Tooltip("Highlight Image for when GENERAL Sub-Tab is selected in KEY BINDINGS")]
         public GameObject lineGeneral;
-
-		[Header("LOBBY SCREEN")]
-		[Tooltip("The UI Panel that holds the Quick Start window tab")]
-		public GameObject PanelQuickStart;
-		[Tooltip("The UI Panel that holds the Search window tab")]
-		public GameObject PanelSearch;
-		[Tooltip("The UI Panel that holds the Create Room window tab")]
-		public GameObject PanelCreateRoom;
 
         [Header("LOADING SCREEN")]
 		[Tooltip("If this is true, the loaded scene won't load until receiving user input")]
@@ -147,14 +135,6 @@ namespace SlimUI.ModernMenu{
 			if(extrasMenu) extrasMenu.SetActive(false);
 			exitMenu.SetActive(false);
 			mainMenu.SetActive(true);
-		}
-		public void LobbyMenu(){
-			if(OptionCanvas) OptionCanvas.SetActive(false);
-			LobbyCanvas.SetActive(true);
-		}
-		public void OptionMenu(){
-			if(LobbyCanvas) LobbyCanvas.SetActive(false);
-			OptionCanvas.SetActive(true);
 		}
 
 		public void LoadScene(string scene){
