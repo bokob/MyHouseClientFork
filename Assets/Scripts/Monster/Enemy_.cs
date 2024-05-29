@@ -1,15 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Net.Http.Headers;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.UI;
-using UnityEngine.XR;
 
 public class Enemy_ : MonoBehaviour
 {
     NavMeshAgent nmAgent;
     Animator _anim;
+    Status _status;
 
     // 순찰 관련
     public Transform centerPoint;  // 순찰 위치 정할 기준점
@@ -17,8 +15,9 @@ public class Enemy_ : MonoBehaviour
     public float patrolSpeed = 1f; // 순찰 속도
 
     // 상태 관련
-    public float Hp { get; private set; } = 100f;                 // 체력
+    public float Hp { get; private set; } = 300f;                   // 체력
     public Define.MonsterState _state = Define.MonsterState.Patrol; // 현재 상태
+    public bool isDead = false;
 
     // 적 시야 관련
     public float radius;              // 시야 범위
@@ -45,13 +44,15 @@ public class Enemy_ : MonoBehaviour
         _anim = GetComponent<Animator>();
         nmAgent = GetComponent<NavMeshAgent>();
         centerPoint = transform;
+        _status = GetComponent<Status>();
+        _status.Hp = Hp;
     }
 
     bool RandomPoint(Vector3 center, float range, out Vector3 result)
     {
         Vector3 randomPoint = center + Random.insideUnitSphere * range; //random point in a sphere 
         NavMeshHit hit;
-        if (NavMesh.SamplePosition(randomPoint, out hit, 1.0f, NavMesh.AllAreas)) //documentation: https://docs.unity3d.com/ScriptReference/AI.NavMesh.SamplePosition.html
+        if (NavMesh.SamplePosition(randomPoint, out hit, 1.0f, NavMesh.AllAreas))
         {
             //the 1.0f is the max distance from the random point to a point on the navmesh, might want to increase if range is big
             //or add a for loop like in the documentation
@@ -65,6 +66,8 @@ public class Enemy_ : MonoBehaviour
 
     void Update()
     {
+        if (isDead) return;
+
         FieldOfViewCheck(); // 시야에 플레이어 있는지 확인
 
         switch (_state)
@@ -77,6 +80,11 @@ public class Enemy_ : MonoBehaviour
                 break;
             case Define.MonsterState.Chase:
                 StartCoroutine(Chase());
+                break;
+            case Define.MonsterState.Attack:
+                StartCoroutine(Attack());
+                break;
+            case Define.MonsterState.Hit:
                 break;
         }
 
@@ -119,9 +127,6 @@ public class Enemy_ : MonoBehaviour
         }
     }
 
-    
-
-
     IEnumerator Idle() // 대기
     {
         // 애니메이터 상태 정보 얻기
@@ -160,7 +165,7 @@ public class Enemy_ : MonoBehaviour
             if (RandomPoint(centerPoint.position, range, out point))
             {
                 Debug.DrawRay(point, Vector3.up, Color.red, 3.0f); // 갈 지점 표시
-                // Debug.Log(point);
+
                 nmAgent.SetDestination(point);
 
                 yield return null;
@@ -169,6 +174,7 @@ public class Enemy_ : MonoBehaviour
         else if(canSeePlayer && nmAgent.remainingDistance <= nmAgent.stoppingDistance) // 공격 범위 안에 있을 때
         {
             StopAllCoroutines(); // 모든 코루틴 종료
+            nmAgent.ResetPath();
             ChangeState(Define.MonsterState.Attack);  // 공격
         }
         else if(canSeePlayer && nmAgent.remainingDistance > nmAgent.stoppingDistance) // 공격범위 밖이면 추격
@@ -193,7 +199,9 @@ public class Enemy_ : MonoBehaviour
         // 목표까지의 남은 거리가 멈추는 지점보다 작거나 같으면
         if (canSeePlayer && nmAgent.remainingDistance <= nmAgent.stoppingDistance)
         {
-            Debug.Log("공격모드On");
+            StopAllCoroutines();
+            nmAgent.ResetPath();
+            ChangeState(Define.MonsterState.Attack);
         }
         else if(canSeePlayer) // 목표가 시야에 있는데 계속 움직이면 경로 다시 계산해서 추격
         {
@@ -201,6 +209,7 @@ public class Enemy_ : MonoBehaviour
         }
         else if (!canSeePlayer) // 시야에서 사라졌으면 Idle로 전환
         {
+            StopAllCoroutines();
             nmAgent.ResetPath();
             ChangeState(Define.MonsterState.Idle);
             yield return null;
@@ -212,56 +221,113 @@ public class Enemy_ : MonoBehaviour
         }
     }
 
-    void CheckPlayerAround()
-    {
-
-    }
-
-    IEnumerator ATTACK()
+    IEnumerator Attack()
     {
         AnimatorStateInfo currentAnimStateInfo = _anim.GetCurrentAnimatorStateInfo(0);
+        nmAgent.isStopped = true;
 
-        // 공격 애니메이션은 공격 후 Idle Battle 로 이동하기 때문에 
-        _anim.Play("Attack", 0, 0);
+        if (target==null) // 목표물이 사라지면
+        {
+            StopAllCoroutines();
+            nmAgent.isStopped = false;
+            ChangeState(Define.MonsterState.Patrol); // 순찰
+        }
+        else nmAgent.SetDestination(target.position);
+
+        if (!currentAnimStateInfo.IsName("Attack"))
+        {
+            _anim.Play("Attack", 0, 0);
+            // SetDestination 을 위해 한 frame을 넘기기위한 코드
+            yield return null;
+        }
 
         // 시야 범위에서 사라지면
         if (!canSeePlayer)
         {
-            // 순찰
-            ChangeState(Define.MonsterState.Patrol);
+            StopAllCoroutines();
+            nmAgent.isStopped = false;
+            ChangeState(Define.MonsterState.Patrol); // 순찰
         }
-        else
-            // 공격 animation 의 두 배만큼 대기
-            // 이 대기 시간을 이용해 공격 간격을 조절할 수 있음.
-            yield return new WaitForSeconds(currentAnimStateInfo.length * 2f);
+        else if(canSeePlayer && nmAgent.remainingDistance > nmAgent.stoppingDistance)
+        {
+            nmAgent.isStopped = false;
+            ChangeState(Define.MonsterState.Chase);
+        }
+
+        yield return null;
     }
 
-    //IEnumerator KILLED()
-    //{
-    //    yield return null;
-    //}
+    IEnumerator OnHit(Collider other) {
+        if (_state != Define.MonsterState.None)
+        {
+            AnimatorStateInfo currentAnimStateInfo = _anim.GetCurrentAnimatorStateInfo(0);
+
+            if (!currentAnimStateInfo.IsName("Surprised"))
+            {
+                _anim.Play("Surprised", 0, 0);
+                currentAnimStateInfo = _anim.GetCurrentAnimatorStateInfo(0);
+                // SetDestination 을 위해 한 frame을 넘기기위한 코드
+                yield return new WaitForSeconds(currentAnimStateInfo.length);
+            }
+
+            // 데미지 적용
+            _status.TakedDamage(other.GetComponent<Weapon>().Attack);
+            Debug.Log($"{gameObject.name}이(가) {other.transform.root.name}에게 공격 받음!");
+            Debug.Log("공격받은 사람의 체력:" + _status.Hp);
+
+            if (_status.Hp <= 0)
+                Dead();
+            else
+                ChangeState(Define.MonsterState.Attack);
+        }
+    }
 
     void ChangeState(Define.MonsterState newState)
     {
         _state = newState;
     }
 
-    //IEnumerator StateMachine()
-    //{
-    //    while(Hp > 0)
-    //    {
-    //        yield return StartCoroutine(_state.ToString());
-    //    }
-    //}
+    void OnTriggerEnter(Collider other)
+    {
+        if (_state == Define.MonsterState.None) return;
 
-    //private void OnTriggerEnter(Collider other)
-    //{
-    //    if (other.name != "Player") return;
-    //    // Sphere Collider 가 Player 를 감지하면      
-    //    target = other.transform;
-    //    // NavMeshAgent의 목표를 Player 로 설정
-    //    nmAgent.SetDestination(target.position);
-    //    // StateMachine을 추적으로 변경
-    //    ChangeState(Define.MonsterState.Chase);
-    //}
+        // 태그가 무기 태그인 경우
+        if (other.tag == "Melee" || other.tag == "Gun")
+        {
+            if (Hp > 0)
+            {
+                StopAllCoroutines();
+                ChangeState(Define.MonsterState.Hit);
+                StartCoroutine(OnHit(other));
+            }
+        }
+        else 
+            Debug.Log("왜 안닿지?");
+    }
+
+    public void Dead()
+    {
+        if (_state != Define.MonsterState.None && _status.Hp <= 0)
+        {
+            isDead = true;
+            nmAgent.ResetPath();
+            _anim.Play("Die", 0, 0);
+            _state = Define.MonsterState.None; // 시체
+            StartCoroutine(DeadSinkCoroutine());
+        }
+    }
+
+    IEnumerator DeadSinkCoroutine()
+    {
+        Debug.Log("시체처리");
+        nmAgent.enabled = false; // 안하면 밑으로 안내려가짐
+        yield return new WaitForSeconds(3f);
+        while (transform.position.y > -1.5f)
+        {
+            Debug.Log("땅속으로 들어가는중");
+            transform.Translate(Vector3.down * 0.1f * Time.deltaTime);
+            yield return null;
+        }
+        Destroy(gameObject);
+    }
 }

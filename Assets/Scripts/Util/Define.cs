@@ -31,10 +31,11 @@ public class Define
 
     public enum MonsterState
     {
+        None,
         Idle,
         Chase,
         Attack,
         Patrol,
-        Killed
+        Hit,
     }
 }
