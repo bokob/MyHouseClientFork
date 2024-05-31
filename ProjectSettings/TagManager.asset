@@ -17,11 +17,16 @@ TagManager:
   - UI
   - Ground
   - Item
-  - 
+  - Player
   - FrozenChunks
   - 
+<<<<<<< HEAD
+  - Monster
+  - 
+=======
   - WallObj
   - Roof
+>>>>>>> main
   - 
   - 
   - 
