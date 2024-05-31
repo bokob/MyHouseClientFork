@@ -25,10 +25,12 @@ public class LobbyBrowseUI : MonoBehaviour
 
 
     public static LobbyBrowseUI instance;
-    private void Awake() {
+    private void Awake() 
+    {
         instance = this;
     }
-    private void Start() {
+    private void Start() 
+    {
         usernameInput.text = NetworkGameManager.instance.GetUsername();
         usernameInput.onValueChanged.AddListener((string newText) =>
         {
