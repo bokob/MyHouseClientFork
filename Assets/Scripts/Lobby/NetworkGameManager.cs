@@ -190,7 +190,7 @@ public class NetworkGameManager : NetworkBehaviour
     private void Network_OnClientDisconnectCallback(ulong clientId)
     {
         //Debug.Log("2");
-        if (SceneManager.GetSceneByName("RoomScene") == SceneManager.GetActiveScene())
+        if (SceneManager.GetSceneByName("LoadingScene") == SceneManager.GetActiveScene())
         {
             // failed to connect
             FindObjectOfType<LobbyBrowseUI>().ConnectionFailed();
