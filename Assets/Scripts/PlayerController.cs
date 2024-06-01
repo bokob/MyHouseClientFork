@@ -278,6 +278,7 @@ public class PlayerController : MonoBehaviour
             // update animator if using character
             if (_hasAnimator)
             {
+                
                 _animator.SetBool(_animIDJump, false);
                 _animator.SetBool(_animIDFreeFall, false);
             }
@@ -297,7 +298,10 @@ public class PlayerController : MonoBehaviour
 
                 // update animator if using character
                 if (_hasAnimator)
+                {
+                    _animator.Play("JumpStart");
                     _animator.SetBool(_animIDJump, true);
+                }
 
                 _status.JumpSpDown();
             }
