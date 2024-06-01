@@ -4,35 +4,30 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Melee
   - Hand
-  - CinemachineTarget
+  - Melee
   - Gun
+  - CinemachineTarget
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Ground
   - Water
   - UI
-  - Ground
-  - Item
+  - 
+  - 
   - Player
+  - Item
+  - 
+  - 
   - FrozenChunks
-  - 
-<<<<<<< HEAD
-  - Monster
-  - 
-=======
-  - WallObj
-  - Roof
->>>>>>> main
-  - 
-  - 
-  - 
   - Cutable
   - Breakable
   - Destructible
+  - 
+  - 
+  - 
   - 
   - 
   - 
