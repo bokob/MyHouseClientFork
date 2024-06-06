@@ -35,7 +35,7 @@ TagManager:
   - 
 =======
   - Player
-  - Item
+  - Monster
   - 
   - 
   - FrozenChunks
@@ -44,7 +44,7 @@ TagManager:
   - Destructible
 >>>>>>> ec2700a37c30a88b9e094ea5f747145fe841f0f5
   - 
-  - 
+  - Item
   - 
   - 
   - 

@@ -66,6 +66,16 @@ public class Melee : Weapon
     {
         _hasExited = false;
         _entryPoint = other.ClosestPoint(transform.position);
+
+        // 데미지 적용
+
+        // 자기 자신에게 닿은 경우 무시
+        if (other.transform.root.name == gameObject.name) return;
+
+        if (other.GetComponent<Status>() != null)
+        {
+            other.GetComponent<Status>().TakedDamage(Attack);
+        }
     }
 
     void OnTriggerStay(Collider other)
