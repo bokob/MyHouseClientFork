@@ -16,7 +16,7 @@ public class ChatServer : MonoBehaviour
     TcpListener server;
     bool serverStarted;
 
-
+      
     public void ServerCreate()
     {
         clients = new List<ServerClient>();

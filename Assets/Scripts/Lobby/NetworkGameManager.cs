@@ -250,5 +250,4 @@ public class NetworkGameManager : NetworkBehaviour
             player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
         }
     }
-
 }
